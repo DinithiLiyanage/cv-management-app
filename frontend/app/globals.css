@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --theme-primary: #2E3047;
+  --theme-secondary: #61668d;
+  --theme-accent: #3BBA9C;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Global theme styles */
+body {
+  /* background: linear-gradient(135deg, #424454 0%, #61668d 50%, #2E3047 100%); */
+  background: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: #3BBA9C;
+  margin: 0;
+  padding: 0;
+}
+
+/* Override for Next.js app structure */
+html, body, #__next {
+  height: 100%;
+  width: 100%;
+}
+
+/* Custom scrollbar for the theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2E3047;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #61668d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3BBA9C;
+}
