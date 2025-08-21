@@ -1,14 +1,33 @@
 import Link from "next/link";
+import Image from "next/image";
+import {
+  BookmarkBorder,
+  Business,
+  Group,
+  NotificationsNone,
+  Search,
+  TrendingUp,
+  UploadFile,
+} from "@mui/icons-material";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white mt-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">CV Manager</h1>
+              <Image
+                src="/logo-sign.png"
+                alt="ApplyX Logo"
+                width={40}
+                height={40}
+                className="mr-2"
+              />
+              <h1 className="text-2xl font-bold text-black tracking-tight">
+                ApplyX
+              </h1>
             </div>
             <div className="flex space-x-4">
               <Link
@@ -19,7 +38,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/register"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="bg-[#0090D9] hover:bg-[#0090D9-700] text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 Get Started
               </Link>
@@ -29,31 +48,38 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-        <div className="text-center">
-          <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-            <span className="block">Build Your Perfect</span>
-            <span className="block text-indigo-600">Resume & CV</span>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
+        <div className="text-center bg-[#E6F7FF] pt-10 pb-10">
+          <h1 className="text-5xl tracking-tight font-extrabold text-gray-900 sm:text-6xl md:text-5xl">
+            <span className="block">Next-Gen Job Searching & Recruiting</span>
+            <span className="block text-[#0090D9]">Simple. Fast. Smart.</span>
           </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Create professional resumes and CVs with our powerful management
-            tool. Import from LinkedIn, choose from beautiful templates, and
-            land your dream job.
+          <p className="mt-6 max-w-2xl mx-auto text-md text-gray-600 sm:text-md md:mt-8 md:text-xl md:max-w-3xl">
+            ApplyX connects professionals and employers through a seamless,
+            interactive experience. Receive instant notifications for relevant
+            jobs, apply effortlessly by uploading or building your CV, and track
+            your progress—all in one app. Employers can create verified company
+            profiles, post jobs and manage the recruitment process with ease.
+            With sleek design, intelligent matching, and a focus on efficiency,
+            ApplyX redefines how candidates and companies connect in today’s
+            fast-paced job market.
           </p>
-          <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+          <div className="mt-8 max-w-md mx-auto sm:flex sm:justify-center md:mt-10">
             <div className="rounded-md shadow">
               <Link
                 href="/register"
-                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
+                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#0090D9] hover:bg-[#0090D9-700] md:py-4 md:text-lg md:px-10"
               >
-                Create Your CV
+                Get Started
               </Link>
             </div>
             <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
               <Link
                 href="/login"
-                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-              ></Link>
+                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-[#0090D9] bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
+              >
+                Sign In
+              </Link>
             </div>
           </div>
         </div>
@@ -61,84 +87,111 @@ export default function Home() {
         {/* Features Section */}
         <div className="mt-20">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Feature 1: Instant Notifications */}
             <div className="text-center">
               <div className="flex justify-center">
-                <div className="w-12 h-12 bg-indigo-100 rounded-md flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-indigo-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                    />
-                  </svg>
+                <div className="w-12 h-12 bg-[#E6F7FF] rounded-md flex items-center justify-center">
+                  <span className="w-6 h-6 text-[#0090D9] flex items-center justify-center">
+                    <NotificationsNone />
+                  </span>
                 </div>
               </div>
               <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Professional Templates
+                Instant Job Notifications
               </h3>
               <p className="mt-2 text-base text-gray-500">
-                Choose from a variety of professionally designed templates to
-                make your CV stand out.
+                Get notified instantly about relevant opportunities tailored to
+                your profile.
               </p>
             </div>
 
+            {/* Feature 2: Effortless CV Upload/Build */}
             <div className="text-center">
               <div className="flex justify-center">
-                <div className="w-12 h-12 bg-indigo-100 rounded-md flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-indigo-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                    />
-                  </svg>
+                <div className="w-12 h-12 bg-[#E6F7FF] rounded-md flex items-center justify-center">
+                  <span className="w-6 h-6 text-[#0090D9] flex items-center justify-center">
+                    <UploadFile />
+                  </span>
                 </div>
               </div>
               <h3 className="mt-4 text-lg font-medium text-gray-900">
-                LinkedIn Integration
+                Effortless CV Upload & Builder
               </h3>
               <p className="mt-2 text-base text-gray-500">
-                Import your professional information directly from LinkedIn to
-                create your CV instantly.
+                Upload your CV or build it on the platform with beautiful
+                templates and smart suggestions.
               </p>
             </div>
 
+            {/* Feature 3: Progress Tracking */}
             <div className="text-center">
               <div className="flex justify-center">
-                <div className="w-12 h-12 bg-indigo-100 rounded-md flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-indigo-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
+                <div className="w-12 h-12 bg-[#E6F7FF] rounded-md flex items-center justify-center">
+                  <span className="w-6 h-6 text-[#0090D9] flex items-center justify-center">
+                    <TrendingUp />
+                  </span>
                 </div>
               </div>
               <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Export & Share
+                Track Your Progress
               </h3>
               <p className="mt-2 text-base text-gray-500">
-                Download your CV in multiple formats (PDF, Word) or share it
-                directly with employers.
+                Monitor your applications, interview schedules, and job
+                status—all in one dashboard.
+              </p>
+            </div>
+
+            {/* Feature 4: Powerful Job Search */}
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="w-12 h-12 bg-[#E6F7FF] rounded-md flex items-center justify-center">
+                  <span className="w-6 h-6 text-[#0090D9] flex items-center justify-center">
+                    <Search />
+                  </span>
+                </div>
+              </div>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                Powerful Job Search
+              </h3>
+              <p className="mt-2 text-base text-gray-500">
+                Find jobs by title, industry, location, or salary—tailored to
+                your career path.
+              </p>
+            </div>
+
+            {/* Feature 5: Save Jobs for Later */}
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="w-12 h-12 bg-[#E6F7FF] rounded-md flex items-center justify-center">
+                  <span className="w-6 h-6 text-[#0090D9] flex items-center justify-center">
+                    <BookmarkBorder />
+                  </span>
+                </div>
+              </div>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                Save Jobs for Later
+              </h3>
+              <p className="mt-2 text-base text-gray-500">
+                Bookmark interesting jobs and return to them when you’re ready
+                to apply.
+              </p>
+            </div>
+
+            {/* Feature 6: Candidate Management */}
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="w-12 h-12 bg-[#E6F7FF] rounded-md flex items-center justify-center">
+                  <span className="w-6 h-6 text-[#0090D9] flex items-center justify-center">
+                    <Group />
+                  </span>
+                </div>
+              </div>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">
+                Candidate Management
+              </h3>
+              <p className="mt-2 text-base text-gray-500">
+                Employers can shortlist and review applications in one
+                place.
               </p>
             </div>
           </div>
