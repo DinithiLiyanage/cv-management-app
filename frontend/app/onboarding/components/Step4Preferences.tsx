@@ -49,14 +49,14 @@ export default function Step4Preferences({
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">
           Job Preferences
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-md">
           Set your preferences to get personalized job recommendations
         </p>
       </div>
 
       {/* Job Types */}
       <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">
+        <h3 className="text-sm font-medium text-gray-800 mb-4">
           Preferred Job Types
         </h3>
         <p className="text-sm text-gray-600 mb-4">
@@ -75,7 +75,7 @@ export default function Step4Preferences({
             >
               <div className="text-center">
                 <div className="text-2xl mb-2">{option.icon}</div>
-                <h4 className="font-medium text-gray-800">{option.label}</h4>
+                <h4 className="text-sm font-medium text-gray-800">{option.label}</h4>
                 {data.jobType.includes(option.id) && (
                   <div className="mt-2">
                     <span className="inline-block w-5 h-5 bg-[#0090D9] rounded-full text-white text-xs flex items-center justify-center">
@@ -91,13 +91,13 @@ export default function Step4Preferences({
 
       {/* Work Location Preferences */}
       <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">
+        <h3 className="text-sm font-medium text-gray-800 mb-4">
           Work Location
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
-              <h4 className="font-medium text-gray-800">Remote Work</h4>
+              <h4 className="text-sm font-medium text-gray-800">Remote Work</h4>
               <p className="text-sm text-gray-600">
                 I'm interested in remote opportunities
               </p>
@@ -131,7 +131,7 @@ export default function Step4Preferences({
                     />
                   </svg>
                 </div>
-                <h4 className="font-medium text-gray-800">On-site</h4>
+                <h4 className="text-sm font-medium text-gray-800">On-site</h4>
                 <p className="text-xs text-gray-600 mt-1">Office based</p>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function Step4Preferences({
                     />
                   </svg>
                 </div>
-                <h4 className="font-medium text-gray-800">Hybrid</h4>
+                <h4 className="text-sm font-medium text-gray-800">Hybrid</h4>
                 <p className="text-xs text-gray-600 mt-1">Mix of both</p>
               </div>
             </div>
@@ -175,7 +175,7 @@ export default function Step4Preferences({
                     />
                   </svg>
                 </div>
-                <h4 className="font-medium text-gray-800">Any Location</h4>
+                <h4 className="text-sm font-medium text-gray-800">Any Location</h4>
                 <p className="text-xs text-gray-600 mt-1">Open to all</p>
               </div>
             </div>
@@ -185,13 +185,13 @@ export default function Step4Preferences({
 
       {/* Notification Settings */}
       <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">
+        <h3 className="text-sm font-medium text-gray-800 mb-4">
           Notification Preferences
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
-              <h4 className="font-medium text-gray-800">Job Alerts</h4>
+              <h4 className="text-sm font-medium text-gray-800">Job Alerts</h4>
               <p className="text-sm text-gray-600">
                 Get notified when new jobs match your preferences
               </p>
@@ -216,22 +216,6 @@ export default function Step4Preferences({
           Your profile is ready to help you find the perfect job opportunities.
           You can always update your preferences later in your profile settings.
         </p>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="font-medium">Job Types:</span>
-            <span className="block opacity-90">
-              {data.jobType.length > 0
-                ? data.jobType.join(", ")
-                : "None selected"}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium">Remote:</span>
-            <span className="block opacity-90">
-              {data.remote ? "Yes" : "Office preferred"}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );

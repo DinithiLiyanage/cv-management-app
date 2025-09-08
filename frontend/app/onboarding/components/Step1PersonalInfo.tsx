@@ -132,29 +132,6 @@ export default function Step1PersonalInfo({
           />
         </div>
       </div>
-
-      {/* Progress Indicator for this step */}
-      <div className="mt-8">
-        <div className="flex justify-between text-sm text-gray-600 mb-2">
-          <span>Step 1 Progress</span>
-          <span>
-            {[data.bio, data.location, data.phone].filter(Boolean).length}/3
-            completed
-          </span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-[#0090D9] h-2 rounded-full transition-all duration-300"
-            style={{
-              width: `${
-                ([data.bio, data.location, data.phone].filter(Boolean).length /
-                  3) *
-                100
-              }%`,
-            }}
-          />
-        </div>
-      </div>
     </div>
   );
 }

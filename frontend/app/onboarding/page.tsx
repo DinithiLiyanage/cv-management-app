@@ -27,6 +27,7 @@ export default function OnboardingPage() {
     company: "",
     experience: "",
     industry: "",
+    careerGoals: [] as string[],
     // Skills (Step 3)
     skills: [] as string[],
     certifications: [] as string[],
@@ -93,33 +94,35 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E6F7FF] to-[#B8E7FF] py-8 px-4 flex flex-col">
-      <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 mx-auto my-8">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#0090D9] mb-2">
-            Welcome to ApplyX!
-          </h1>
-          <p className="text-gray-600 text-sm md:text-base">
-            Let's set up your profile to get you started
-          </p>
+    <div className="h-full">
+      <div className="min-h-screen bg-gradient-to-br from-[#E6F7FF] to-[#B8E7FF] py-2 px-4">
+        <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-3 md:p-8 mx-auto my-8">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#0090D9] mb-2">
+              Welcome to ApplyX!
+            </h1>
+            <p className="text-gray-600 text-sm md:text-base">
+              Let's set up your profile to get you started
+            </p>
+          </div>
+
+          {/* Step Indicator */}
+          <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+
+          {/* Step Content */}
+          <div className="mb-8 overflow-visible">{renderStep()}</div>
+
+          {/* Navigation */}
+          <NavigationButtons
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onNext={nextStep}
+            onPrev={prevStep}
+            onFinish={handleFinish}
+            onSkip={handleSkip}
+          />
         </div>
-
-        {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-
-        {/* Step Content */}
-        <div className="mb-8 overflow-visible">{renderStep()}</div>
-
-        {/* Navigation */}
-        <NavigationButtons
-          currentStep={currentStep}
-          totalSteps={TOTAL_STEPS}
-          onNext={nextStep}
-          onPrev={prevStep}
-          onFinish={handleFinish}
-          onSkip={handleSkip}
-        />
       </div>
     </div>
   );

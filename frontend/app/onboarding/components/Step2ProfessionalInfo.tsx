@@ -4,6 +4,7 @@ type Step2ProfessionalInfoProps = {
     company: string;
     experience: string;
     industry: string;
+    careerGoals?: string[];
   };
   updateData: (newData: any) => void;
 };
@@ -14,6 +15,21 @@ export default function Step2ProfessionalInfo({
 }: Step2ProfessionalInfoProps) {
   const handleInputChange = (field: string, value: string) => {
     updateData({ [field]: value });
+  };
+
+  const toggleCareerGoal = (goal: string) => {
+    const currentGoals = data.careerGoals || [];
+    const isSelected = currentGoals.includes(goal);
+
+    if (isSelected) {
+      updateData({
+        careerGoals: currentGoals.filter((g) => g !== goal),
+      });
+    } else {
+      updateData({
+        careerGoals: [...currentGoals, goal],
+      });
+    }
   };
 
   const experienceOptions = [
@@ -59,7 +75,7 @@ export default function Step2ProfessionalInfo({
             value={data.jobTitle}
             onChange={(e) => handleInputChange("jobTitle", e.target.value)}
             placeholder="e.g. Software Developer"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200 text-sm text-gray-500"
           />
         </div>
 
@@ -73,7 +89,7 @@ export default function Step2ProfessionalInfo({
             value={data.company}
             onChange={(e) => handleInputChange("company", e.target.value)}
             placeholder="e.g. Tech Solutions Inc."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200 text-sm text-gray-500"
           />
         </div>
 
@@ -85,7 +101,7 @@ export default function Step2ProfessionalInfo({
           <select
             value={data.experience}
             onChange={(e) => handleInputChange("experience", e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200 bg-white"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200 bg-white text-sm text-gray-500"
           >
             <option value="">Select experience level</option>
             {experienceOptions.map((option) => (
@@ -104,7 +120,7 @@ export default function Step2ProfessionalInfo({
           <select
             value={data.industry}
             onChange={(e) => handleInputChange("industry", e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200 bg-white"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none transition-all duration-200 bg-white text-sm text-gray-500"
           >
             <option value="">Select industry</option>
             {industryOptions.map((option) => (
@@ -119,8 +135,18 @@ export default function Step2ProfessionalInfo({
       {/* Professional Goals */}
       <div className="mt-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Career Goals</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Select all goals that align with your career aspirations
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 border border-gray-200 rounded-lg hover:border-[#0090D9] transition-colors duration-200 cursor-pointer">
+          <div
+            className={`p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              (data.careerGoals || []).includes("career-growth")
+                ? "border-[#0090D9] bg-blue-50"
+                : "border-gray-200 hover:border-[#0090D9]"
+            }`}
+            onClick={() => toggleCareerGoal("career-growth")}
+          >
             <div className="text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <svg
@@ -141,10 +167,34 @@ export default function Step2ProfessionalInfo({
               <p className="text-sm text-gray-600 mt-1">
                 Advance in current field
               </p>
+              {(data.careerGoals || []).includes("career-growth") && (
+                <div className="mt-2">
+                  <div className="inline-flex items-center justify-center w-5 h-5 bg-[#0090D9] rounded-full">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="p-4 border border-gray-200 rounded-lg hover:border-[#0090D9] transition-colors duration-200 cursor-pointer">
+          <div
+            className={`p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              (data.careerGoals || []).includes("new-opportunities")
+                ? "border-[#0090D9] bg-blue-50"
+                : "border-gray-200 hover:border-[#0090D9]"
+            }`}
+            onClick={() => toggleCareerGoal("new-opportunities")}
+          >
             <div className="text-center">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <svg
@@ -165,10 +215,34 @@ export default function Step2ProfessionalInfo({
               <p className="text-sm text-gray-600 mt-1">
                 Explore different roles
               </p>
+              {(data.careerGoals || []).includes("new-opportunities") && (
+                <div className="mt-2">
+                  <div className="inline-flex items-center justify-center w-5 h-5 bg-[#0090D9] rounded-full">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="p-4 border border-gray-200 rounded-lg hover:border-[#0090D9] transition-colors duration-200 cursor-pointer">
+          <div
+            className={`p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              (data.careerGoals || []).includes("skill-development")
+                ? "border-[#0090D9] bg-blue-50"
+                : "border-gray-200 hover:border-[#0090D9]"
+            }`}
+            onClick={() => toggleCareerGoal("skill-development")}
+          >
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <svg
@@ -189,6 +263,23 @@ export default function Step2ProfessionalInfo({
               <p className="text-sm text-gray-600 mt-1">
                 Learn new technologies
               </p>
+              {(data.careerGoals || []).includes("skill-development") && (
+                <div className="mt-2">
+                  <div className="inline-flex items-center justify-center w-5 h-5 bg-[#0090D9] rounded-full">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
