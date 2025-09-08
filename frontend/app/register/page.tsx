@@ -25,10 +25,10 @@ function SignUp() {
     password: [],
   });
 
-  // Redirect to login page on successful registration
+  // Redirect to onboarding page on successful registration
   useEffect(() => {
     if (success) {
-      router.push("/login");
+      router.push("/onboarding");
     }
   }, [success, router]);
 

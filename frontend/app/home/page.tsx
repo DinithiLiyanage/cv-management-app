@@ -119,7 +119,7 @@ export default function Home() {
           <Header />
 
           {/* Body */}
-          <div className="flex gap-8 px-5 py-10">
+          <div className="flex gap-10 py-10">
             {/* Sidebar */}
             {sidebarVisible && (
               <JobFilterSidebar onFilter={handleSidebarFilter} />

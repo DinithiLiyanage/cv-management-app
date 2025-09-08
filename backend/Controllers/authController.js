@@ -29,7 +29,7 @@ exports.signup = async (req, res, next) => {
       message: "User registered successfully",
       token,
       user: {
-        _id: newUser._id,
+        id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
@@ -60,7 +60,7 @@ exports.login = async (req, res, next) => {
       message: "User logged in successfully",
       token,
       user: {
-        _id: user._id,
+        id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,

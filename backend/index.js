@@ -13,6 +13,7 @@ app.use(express.json());
 // Route
 app.use("/api/auth", require("./Routers/authRoute"));
 app.use("/api/jobs", require("./Routers/jobsRoute"));
+app.use("/api/user", require("./Routers/userRoute"));
 
 // Mongo DB connection
 mongoose
