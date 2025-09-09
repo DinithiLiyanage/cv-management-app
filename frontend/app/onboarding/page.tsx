@@ -27,14 +27,13 @@ export default function OnboardingPage() {
     company: "",
     experience: "",
     industry: "",
-    careerGoals: [] as string[],
     // Skills (Step 3)
     skills: [] as string[],
     certifications: [] as string[],
     salaryExpectation: "",
     // Preferences (Step 4)
     jobType: [] as string[],
-    remote: false,
+    workLocation: "",
     notifications: true,
   });
 
@@ -50,7 +49,7 @@ export default function OnboardingPage() {
     try {
       // Send complete profile data to backend
       const response = await fetch(
-        `http://localhost:3001/api/user/profile/${userData._id}`,
+        `http://localhost:3001/api/user/profile/${userData.id}`,
         {
           method: "PUT",
           headers: {

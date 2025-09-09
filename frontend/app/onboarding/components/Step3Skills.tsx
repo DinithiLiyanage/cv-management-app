@@ -184,7 +184,7 @@ export default function Step3Skills({ data, updateData }: Step3SkillsProps) {
           />
           <button
             onClick={addCertification}
-            className="px-6 py-2 bg-[#0090D9] text-white text-sm rounded-lg hover:bg-green-700 transition-colors duration-200"
+            className="px-6 py-2 bg-[#0090D9] text-white text-sm rounded-lg hover:bg-[#007bb5] transition-colors duration-200"
           >
             Add
           </button>
@@ -202,7 +202,7 @@ export default function Step3Skills({ data, updateData }: Step3SkillsProps) {
                   onClick={() => removeCertification(cert)}
                   className="text-red-500 text-sm hover:text-red-700 transition-colors duration-200"
                 >
-                  Remove
+                  X
                 </button>
               </div>
             ))}
