@@ -20,7 +20,7 @@ export default function Header() {
   };
 
   const handleSettings = () => {
-    router.push("/settings");
+    router.push(`/settings/${userData.id}`);
     setDropdownOpen(false);
   };
 
