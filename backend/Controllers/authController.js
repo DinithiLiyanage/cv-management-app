@@ -51,7 +51,7 @@ exports.login = async (req, res, next) => {
       return next(new createError("Incorrect email or password", 401));
     }
 
-    const token = jwt.sign({ _id: user._id }, "secretkey123", {
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "10d",
     });
 

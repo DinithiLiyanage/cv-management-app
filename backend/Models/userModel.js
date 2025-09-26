@@ -35,21 +35,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
-    jobTitle: {
-        type: String,
-        default: '',
-    },
-    company: {
-        type: String,
-        default: '',
-    },
-    experience: {
-        type: String,
-        default: '',
-    },
-    industry: {
-        type: String,
-        default: '',
+    experiences: {
+        type: [Object],
+        default: [],
     },
     careerGoals: {
         type: [String],
@@ -75,7 +63,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
-    notifications: {
+    emailNotifications: {
+        type: Boolean,
+        default: true,
+    },
+    pushNotifications: {
+        type: Boolean,
+        default: true,
+    },
+    marketingEmails: {
         type: Boolean,
         default: true,
     },

@@ -12,6 +12,14 @@ import NavigationButtons from "./components/NavigationButtons";
 
 const TOTAL_STEPS = 4;
 
+type ProffessionalInfo = {
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  industry: string;
+}
+
 export default function OnboardingPage() {
   const { userData } = useAuth();
   const router = useRouter();
@@ -23,10 +31,7 @@ export default function OnboardingPage() {
     location: "",
     phone: "",
     // Professional Info (Step 2)
-    jobTitle: "",
-    company: "",
-    experience: "",
-    industry: "",
+    experiences: [] as ProffessionalInfo[],
     // Skills (Step 3)
     skills: [] as string[],
     certifications: [] as string[],
@@ -81,7 +86,10 @@ export default function OnboardingPage() {
         );
       case 2:
         return (
-          <Step2ProfessionalInfo data={formData} updateData={updateFormData} />
+          <Step2ProfessionalInfo
+            data={formData.experiences[0] || { jobTitle: "", company: "", startDate: "", endDate: "", industry: "" }}
+            updateData={updateFormData}
+          />
         );
       case 3:
         return <Step3Skills data={formData} updateData={updateFormData} />;

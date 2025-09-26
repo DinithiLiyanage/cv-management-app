@@ -45,7 +45,7 @@ export default function JobFilterSidebar({ onFilter }) {
   };
 
   return (
-    <div className="w-64 bg-white text-black shadow-md rounded-xl p-4">
+    <div className="w-72 bg-white text-black shadow-md rounded-xl p-4">
       <h2 className="text-xl font-semibold mb-4">Filter Jobs</h2>
 
       {/* Keywords */}

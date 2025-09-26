@@ -66,7 +66,7 @@ export default function Header() {
   };
 
   return (
-    <div className="flex justify-between items-center bg-gradient-to-r from-[#E6F7FF] to-[#B8E7FF] px-3 py-4 mt-4">
+    <div className="flex justify-between items-center bg-gradient-to-r from-[#B8E7FF] to-[#5CC9FF] px-15 py-6">
       <div className="flex items-center">
         <img
           src="/logo-sign.png"

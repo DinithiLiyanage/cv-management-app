@@ -108,18 +108,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="h-full w-full">
       {loading ? (
         <div className="w-full h-full flex flex-col items-center justify-center min-h-screen">
           <h2 className="text-2xl font-semibold">Loading jobs...</h2>
         </div>
       ) : (
-        <div className="w-full h-full">
+        <div className="min-h-screen">
           {/* Header */}
           <Header />
 
           {/* Body */}
-          <div className="flex gap-10 py-10">
+          <div className="flex gap-25 py-10 px-15">
             {/* Sidebar */}
             {sidebarVisible && (
               <JobFilterSidebar onFilter={handleSidebarFilter} />

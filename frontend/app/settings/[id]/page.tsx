@@ -10,13 +10,8 @@ import {
     Tune,
     PrivacyTip,
     Help,
-    Edit,
-    LocationOn,
     Work,
-    Phone,
     Email,
-    Save,
-    Cancel,
     Visibility,
     VisibilityOff,
 } from "@mui/icons-material";
@@ -26,7 +21,7 @@ type SettingsSection =
     | "security"
     | "notifications"
     | "preferences"
-    | "privacy"
+    // | "privacy"
     | "help";
 
 interface UserAccount {
@@ -48,10 +43,6 @@ interface UserAccount {
     emailNotifications?: boolean;
     pushNotifications?: boolean;
     marketingEmails?: boolean;
-    profileVisibility?: "public" | "private" | "connections";
-    showEmail?: boolean;
-    showPhone?: boolean;
-    showLocation?: boolean;
 }
 
 const jobTypeOptions = [
@@ -86,19 +77,34 @@ export default function SettingsPage() {
         confirm: false,
     });
     const [newSecondaryEmail, setNewSecondaryEmail] = useState("");
+    const [token, setToken] = useState<string | null>(null);
 
     const sidebarItems = [
         { id: "account", label: "Account", icon: Person },
         { id: "security", label: "Security", icon: Security },
         { id: "notifications", label: "Notifications", icon: Notifications },
         { id: "preferences", label: "Job Preferences", icon: Tune },
-        { id: "privacy", label: "Privacy", icon: PrivacyTip },
         { id: "help", label: "Help & Support", icon: Help },
     ];
 
     useEffect(() => {
+            if (typeof window !== "undefined") {
+                const storedData = localStorage.getItem("user_data");
+                if (storedData) {
+                    try {
+                        const parsed = JSON.parse(storedData);
+                        setToken(parsed.userToken);
+                    } catch (e) {
+                        // handle error
+                    }
+                }
+            }
+        }, []);
+
+    useEffect(() => {
+        if (!token || !params.id) return;
         fetchUserAccount();
-    }, [params.id]);
+    }, [token, params.id]);
 
     const fetchUserAccount = async () => {
         setLoading(true);
@@ -109,6 +115,7 @@ export default function SettingsPage() {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
@@ -132,10 +139,11 @@ export default function SettingsPage() {
 
         setLoading(true);
         try {
-            const response = await fetch(`/api/users/${params.id}`, {
+            const response = await fetch(`/api/users/account/${params.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(user),
             });
@@ -166,11 +174,12 @@ export default function SettingsPage() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/users/${params.id}/change-password`,
+                `/api/users/account/${params.id}/change-password`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         currentPassword: passwordData.currentPassword,
@@ -706,196 +715,196 @@ export default function SettingsPage() {
         </div>
     );
 
-    const renderPrivacySection = () => (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-900">
-                Privacy Settings
-            </h2>
+    // const renderPrivacySection = () => (
+    //     <div className="space-y-6">
+    //         <h2 className="text-2xl font-semibold text-gray-900">
+    //             Privacy Settings
+    //         </h2>
 
-            <div className="bg-white rounded-lg shadow p-6">
-                <div className="space-y-6">
-                    {/* Profile Visibility */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Profile Visibility
-                        </label>
-                        <div className="space-y-2">
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    name="profileVisibility"
-                                    value="public"
-                                    checked={
-                                        user?.profileVisibility === "public"
-                                    }
-                                    onChange={(e) =>
-                                        updateField(
-                                            "profileVisibility",
-                                            e.target.value
-                                        )
-                                    }
-                                    className="mr-3 text-[#0090D9]"
-                                />
-                                <div>
-                                    <span className="text-base text-gray-900 font-medium">
-                                        Public
-                                    </span>
-                                    <p className="text-sm text-gray-600">
-                                        Anyone can view your profile
-                                    </p>
-                                </div>
-                            </label>
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    name="profileVisibility"
-                                    value="connections"
-                                    checked={
-                                        user?.profileVisibility ===
-                                        "connections"
-                                    }
-                                    onChange={(e) =>
-                                        updateField(
-                                            "profileVisibility",
-                                            e.target.value
-                                        )
-                                    }
-                                    className="mr-3 text-[#0090D9]"
-                                />
-                                <div>
-                                    <span className="text-base text-gray-900 font-medium">
-                                        Connections Only
-                                    </span>
-                                    <p className="text-sm text-gray-600">
-                                        Only your connections can view your
-                                        profile
-                                    </p>
-                                </div>
-                            </label>
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    name="profileVisibility"
-                                    value="private"
-                                    checked={
-                                        user?.profileVisibility === "private"
-                                    }
-                                    onChange={(e) =>
-                                        updateField(
-                                            "profileVisibility",
-                                            e.target.value
-                                        )
-                                    }
-                                    className="mr-3 text-[#0090D9]"
-                                />
-                                <div>
-                                    <span className="text-base text-gray-900 font-medium">
-                                        Private
-                                    </span>
-                                    <p className="text-sm text-gray-600">
-                                        Only you can view your profile
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
+    //         <div className="bg-white rounded-lg shadow p-6">
+    //             <div className="space-y-6">
+    //                 {/* Profile Visibility */}
+    //                 <div>
+    //                     <label className="block text-sm font-medium text-gray-700 mb-3">
+    //                         Profile Visibility
+    //                     </label>
+    //                     <div className="space-y-2">
+    //                         <label className="flex items-center">
+    //                             <input
+    //                                 type="radio"
+    //                                 name="profileVisibility"
+    //                                 value="public"
+    //                                 checked={
+    //                                     user?.profileVisibility === "public"
+    //                                 }
+    //                                 onChange={(e) =>
+    //                                     updateField(
+    //                                         "profileVisibility",
+    //                                         e.target.value
+    //                                     )
+    //                                 }
+    //                                 className="mr-3 text-[#0090D9]"
+    //                             />
+    //                             <div>
+    //                                 <span className="text-base text-gray-900 font-medium">
+    //                                     Public
+    //                                 </span>
+    //                                 <p className="text-sm text-gray-600">
+    //                                     Anyone can view your profile
+    //                                 </p>
+    //                             </div>
+    //                         </label>
+    //                         <label className="flex items-center">
+    //                             <input
+    //                                 type="radio"
+    //                                 name="profileVisibility"
+    //                                 value="connections"
+    //                                 checked={
+    //                                     user?.profileVisibility ===
+    //                                     "connections"
+    //                                 }
+    //                                 onChange={(e) =>
+    //                                     updateField(
+    //                                         "profileVisibility",
+    //                                         e.target.value
+    //                                     )
+    //                                 }
+    //                                 className="mr-3 text-[#0090D9]"
+    //                             />
+    //                             <div>
+    //                                 <span className="text-base text-gray-900 font-medium">
+    //                                     Connections Only
+    //                                 </span>
+    //                                 <p className="text-sm text-gray-600">
+    //                                     Only your connections can view your
+    //                                     profile
+    //                                 </p>
+    //                             </div>
+    //                         </label>
+    //                         <label className="flex items-center">
+    //                             <input
+    //                                 type="radio"
+    //                                 name="profileVisibility"
+    //                                 value="private"
+    //                                 checked={
+    //                                     user?.profileVisibility === "private"
+    //                                 }
+    //                                 onChange={(e) =>
+    //                                     updateField(
+    //                                         "profileVisibility",
+    //                                         e.target.value
+    //                                     )
+    //                                 }
+    //                                 className="mr-3 text-[#0090D9]"
+    //                             />
+    //                             <div>
+    //                                 <span className="text-base text-gray-900 font-medium">
+    //                                     Private
+    //                                 </span>
+    //                                 <p className="text-sm text-gray-600">
+    //                                     Only you can view your profile
+    //                                 </p>
+    //                             </div>
+    //                         </label>
+    //                     </div>
+    //                 </div>
 
-                    {/* Contact Information Visibility */}
-                    <div className="pt-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Contact Information
-                        </h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                    <Email className="text-[#0090D9] w-5 h-5" />
-                                    <div>
-                                        <h4 className=" text-base font-medium text-gray-800">
-                                            Show Email
-                                        </h4>
-                                        <p className="text-sm text-gray-600">
-                                            Display email on public profile
-                                        </p>
-                                    </div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={user?.showEmail || false}
-                                        onChange={(e) =>
-                                            updateField(
-                                                "showEmail",
-                                                e.target.checked
-                                            )
-                                        }
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0090D9]"></div>
-                                </label>
-                            </div>
+    //                 {/* Contact Information Visibility */}
+    //                 <div className="pt-6">
+    //                     <h3 className="text-lg font-medium text-gray-900 mb-4">
+    //                         Contact Information
+    //                     </h3>
+    //                     <div className="space-y-4">
+    //                         <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+    //                             <div className="flex items-center space-x-3">
+    //                                 <Email className="text-[#0090D9] w-5 h-5" />
+    //                                 <div>
+    //                                     <h4 className=" text-base font-medium text-gray-800">
+    //                                         Show Email
+    //                                     </h4>
+    //                                     <p className="text-sm text-gray-600">
+    //                                         Display email on public profile
+    //                                     </p>
+    //                                 </div>
+    //                             </div>
+    //                             <label className="relative inline-flex items-center cursor-pointer">
+    //                                 <input
+    //                                     type="checkbox"
+    //                                     checked={user?.showEmail || false}
+    //                                     onChange={(e) =>
+    //                                         updateField(
+    //                                             "showEmail",
+    //                                             e.target.checked
+    //                                         )
+    //                                     }
+    //                                     className="sr-only peer"
+    //                                 />
+    //                                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0090D9]"></div>
+    //                             </label>
+    //                         </div>
 
-                            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                    <Phone className="text-[#0090D9] w-5 h-5" />
-                                    <div>
-                                        <h4 className="text-base font-medium text-gray-800">
-                                            Show Phone
-                                        </h4>
-                                        <p className="text-sm text-gray-600">
-                                            Display phone number on public
-                                            profile
-                                        </p>
-                                    </div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={user?.showPhone || false}
-                                        onChange={(e) =>
-                                            updateField(
-                                                "showPhone",
-                                                e.target.checked
-                                            )
-                                        }
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0090D9]"></div>
-                                </label>
-                            </div>
+    //                         <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+    //                             <div className="flex items-center space-x-3">
+    //                                 <Phone className="text-[#0090D9] w-5 h-5" />
+    //                                 <div>
+    //                                     <h4 className="text-base font-medium text-gray-800">
+    //                                         Show Phone
+    //                                     </h4>
+    //                                     <p className="text-sm text-gray-600">
+    //                                         Display phone number on public
+    //                                         profile
+    //                                     </p>
+    //                                 </div>
+    //                             </div>
+    //                             <label className="relative inline-flex items-center cursor-pointer">
+    //                                 <input
+    //                                     type="checkbox"
+    //                                     checked={user?.showPhone || false}
+    //                                     onChange={(e) =>
+    //                                         updateField(
+    //                                             "showPhone",
+    //                                             e.target.checked
+    //                                         )
+    //                                     }
+    //                                     className="sr-only peer"
+    //                                 />
+    //                                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0090D9]"></div>
+    //                             </label>
+    //                         </div>
 
-                            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                    <LocationOn className="text-[#0090D9] w-5 h-5" />
-                                    <div>
-                                        <h4 className="text-base font-medium text-gray-800">
-                                            Show Location
-                                        </h4>
-                                        <p className="text-sm text-gray-600">
-                                            Display location on public profile
-                                        </p>
-                                    </div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={user?.showLocation || false}
-                                        onChange={(e) =>
-                                            updateField(
-                                                "showLocation",
-                                                e.target.checked
-                                            )
-                                        }
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0090D9]"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    //                         <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+    //                             <div className="flex items-center space-x-3">
+    //                                 <LocationOn className="text-[#0090D9] w-5 h-5" />
+    //                                 <div>
+    //                                     <h4 className="text-base font-medium text-gray-800">
+    //                                         Show Location
+    //                                     </h4>
+    //                                     <p className="text-sm text-gray-600">
+    //                                         Display location on public profile
+    //                                     </p>
+    //                                 </div>
+    //                             </div>
+    //                             <label className="relative inline-flex items-center cursor-pointer">
+    //                                 <input
+    //                                     type="checkbox"
+    //                                     checked={user?.showLocation || false}
+    //                                     onChange={(e) =>
+    //                                         updateField(
+    //                                             "showLocation",
+    //                                             e.target.checked
+    //                                         )
+    //                                     }
+    //                                     className="sr-only peer"
+    //                                 />
+    //                                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0090D9]"></div>
+    //                             </label>
+    //                         </div>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     </div>
+    // );
 
     // TODO: Enhance this section with more interactive elements and useful links
     const renderHelpSection = () => (
@@ -991,8 +1000,6 @@ export default function SettingsPage() {
                 return renderNotificationsSection();
             case "preferences":
                 return renderPreferencesSection();
-            case "privacy":
-                return renderPrivacySection();
             case "help":
                 return renderHelpSection();
             default:
@@ -1017,10 +1024,10 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="h-full w-full px-10">
+        <div className="h-full w-full">
             <div className="min-h-screen bg-gray-50">
                 <Header />
-                <div className="max-w-7xl mx-auto py-8">
+                <div className="max-w-7xl mx-auto py-8 px-15">
                     <div className="flex gap-20">
                         {/* Sidebar */}
                         <div className="w-64 bg-white rounded-lg shadow-sm p-6 h-fit">
