@@ -48,6 +48,7 @@ export default function Home() {
   useEffect(() => {
     // Optionally, skip fetch if filters are not set
     if (!filters) return;
+    setLoading(true);
     console.log("Fetching jobs with filters:", filters);
     fetch("http://localhost:3001/api/jobs/search", {
       method: "POST",
@@ -148,12 +149,12 @@ export default function Home() {
                       company={job.company || "Unknown"}
                       location={job.location || "Unknown"}
                       tags={job.category ? [job.category] : []}
-                      description={job.description || "No description available"}
                       salary={
                         job.salary_min && job.salary_max
                           ? formatSalary(job.salary_min, job.salary_max)
                           : "Not specified"
                       }
+                      id={job.id || idx}
                     />
                   )
                 )}

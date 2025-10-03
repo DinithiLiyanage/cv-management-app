@@ -49,7 +49,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
-        <div className="text-center bg-[#E6F7FF] pt-10 pb-10">
+        <div className="text-center bg-[#B8E7FF] pt-10 pb-10">
           <h1 className="text-5xl tracking-tight font-extrabold text-gray-900 sm:text-6xl md:text-5xl">
             <span className="block">Next-Gen Job Searching & Recruiting</span>
             <span className="block text-[#0090D9]">Simple. Fast. Smart.</span>

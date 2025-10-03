@@ -10,7 +10,7 @@ const JobDetailCard = ({
   location,
   tags,
   salary,
-  description,
+  id,
 }) => {
   const [isSaved, setIsSaved] = React.useState(false);
 
@@ -21,12 +21,7 @@ const JobDetailCard = ({
 
   // Build query string
   const query = new URLSearchParams({
-    position,
-    company,
-    location,
-    salary,
-    description: description || "",
-    tags: tags.join(","),
+    id,
     isSaved: isSaved.toString(),
   }).toString();
 
