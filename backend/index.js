@@ -14,25 +14,26 @@ app.use(express.json());
 app.use("/api/auth", require("./Routers/authRoute"));
 app.use("/api/jobs", require("./Routers/jobsRoute"));
 app.use("/api/user", require("./Routers/userRoute"));
+app.use("/api/organizations", require("./Routers/orgRoute"));
 
 // Mongo DB connection
 mongoose
-  .connect("mongodb://127.0.0.1:27017/JobApp")
-  .then(() => console.log("Connected to MongoDB!"))
-  .catch((error) => console.error("Failed to connect:", error));
+    .connect("mongodb://127.0.0.1:27017/JobApp")
+    .then(() => console.log("Connected to MongoDB!"))
+    .catch((error) => console.error("Failed to connect:", error));
 
 // Global error handler
 app.use((err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || "error";
+    err.statusCode = err.statusCode || 500;
+    err.status = err.status || "error";
 
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
+    res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+    });
 });
 
 // Server
 app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
+    console.log(`Server listening on ${PORT}`);
 });

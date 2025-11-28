@@ -1,4 +1,3 @@
-const { intervalToDurationWithOptions } = require('date-fns/fp');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
