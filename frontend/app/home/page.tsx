@@ -155,6 +155,7 @@ export default function Home() {
                           : "Not specified"
                       }
                       id={job.id || idx}
+                      source="external"
                     />
                   )
                 )}

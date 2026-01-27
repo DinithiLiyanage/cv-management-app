@@ -6,6 +6,8 @@ const createError = require("../Utils/appError.js");
 const { ca } = require("date-fns/locale");
 const appKey = process.env.ADZUNA_APP_KEY;
 const appId = process.env.ADZUNA_APP_ID;
+const Job = require("../Models/JobModel.js");
+const UserOrg = require("../Models/userOrgModel.js");
 
 exports.searchJobs = async (req, res, next) => {
     try {
@@ -44,6 +46,7 @@ exports.searchJobs = async (req, res, next) => {
             // console.log("Adzuna API response:", response.data.results);
             const jobs = (response.data.results || []).map((job) => ({
                 id: job.id,
+                externalId: job.id,
                 title: job.title,
                 company: job.company?.display_name || "Unknown",
                 location: job.location?.display_name || "Unknown",
@@ -52,6 +55,7 @@ exports.searchJobs = async (req, res, next) => {
                 salary_max: job.salary_max,
                 description: job.description,
                 url: job.redirect_url,
+                source: "external",
             }));
 
             jobs.forEach((job) => {
@@ -93,6 +97,7 @@ exports.getAllJobs = async (req, res, next) => {
         // Map Adzuna jobs to your own job model
         const jobs = (response.data.results || []).map((job) => ({
             id: job.id,
+            externalId: job.id,
             title: job.title,
             company: job.company?.display_name || "Unknown",
             location: job.location?.display_name || "Unknown",
@@ -101,6 +106,7 @@ exports.getAllJobs = async (req, res, next) => {
             salary_max: job.salary_max,
             description: job.description,
             url: job.redirect_url,
+            source: "external",
         }));
 
         cache.set(cacheKey, jobs); // Cache the result
@@ -117,7 +123,7 @@ exports.getAllJobs = async (req, res, next) => {
     }
 };
 
-exports.getJobById = async (req, res, next) => {
+exports.getExternalJobById = async (req, res, next) => {
     try {
         const jobId = req.params.id;
         const jobsCacheKey = `job:${jobId}`;
@@ -130,5 +136,72 @@ exports.getJobById = async (req, res, next) => {
     } catch (error) {
         console.log("Error fetching job from Adzuna API:", error);
         next(new createError("Failed to fetch job", 500));
+    }
+};
+
+exports.createJob = async (req, res, next) => {
+    try {
+        const userId = req.user_id;
+        const orgId = req.body.orgId;
+        
+        const membership = await UserOrg.findOne({
+            userId,
+            orgId,
+            role: "admin",
+        });
+
+        if (!membership) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+        const newJob = new Job({
+            orgId: req.body.orgId,
+            source: "internal",
+            title: req.body.title,
+            company: req.body.company,
+            location: req.body.location,
+            category: req.body.category,
+            salary_min: req.body.salary_min,
+            salary_max: req.body.salary_max,
+            description: req.body.description,
+            url: req.body.url,
+            requirements: req.body.requirements,
+            responsibilities: req.body.responsibilities,
+            benefits: req.body.benefits,
+            jobType: req.body.jobType,
+            deadline: req.body.deadline,
+            createdBy: userId,
+            status: "open",
+        });
+
+        await newJob.save();
+        res.status(201).json({ message: "Job created successfully" });
+    } catch (error) {
+        console.log("Error creating job:", error);
+        next(new createError("Failed to create job", 500));
+    }
+};
+
+exports.getOpenInternalJobsByOrg = async (req, res, next) => {
+    try {
+        const orgId = req.params.orgId;
+        const jobs = await Job.find({ orgId, source: "internal" , status: "open" });
+        res.json(jobs);
+    } catch (error) {
+        console.log("Error fetching internal jobs:", error);
+        next(new createError("Failed to fetch internal jobs", 500));
+    }   
+};
+
+exports.getInternalJobById = async (req, res, next) => {
+    try {
+        const jobId = req.params.id;
+        const job = await Job.findOne({ _id: jobId, source: "internal" });
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+        res.json(job);
+    } catch (error) {
+        console.log("Error fetching internal job:", error);
+        next(new createError("Failed to fetch internal job", 500));
     }
 };

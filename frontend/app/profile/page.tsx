@@ -49,13 +49,42 @@ export default function ProfilePage() {
         industry: "",
     });
 
+    const [token, setToken] = useState<string | null>(null);
+
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedData = localStorage.getItem("user_data");
+            if (storedData) {
+                try {
+                    const parsed = JSON.parse(storedData);
+                    setToken(parsed.userToken);
+                } catch (e) {
+                    // handle error
+                }
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!token) {
+            return;
+        }
+
         const fetchUserProfile = async () => {
             try {
-                const userId = params.id;
                 const response = await fetch(
-                    `http://localhost:3001/api/user/profile`
+                    `http://localhost:3001/api/user/profile`,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
                 const data = await response.json();
                 setUser(data);
                 setEditedUser(data);
@@ -64,10 +93,8 @@ export default function ProfilePage() {
             }
         };
 
-        if (params.id) {
-            fetchUserProfile();
-        }
-    }, [params.id]);
+        fetchUserProfile();
+    }, [token]); // <-- add token here
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -80,15 +107,16 @@ export default function ProfilePage() {
     };
 
     const handleSave = async () => {
+        if (!token || !editedUser) return;
         setLoading(true);
         try {
-            const userId = params.id;
             const response = await fetch(
-                `http://localhost:3001/api/user/profile/${userId}`,
+                `http://localhost:3001/api/user/profile`,
                 {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify(editedUser),
                 }

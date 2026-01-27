@@ -11,9 +11,10 @@ const JobDetailCard = ({
   tags,
   salary,
   id,
+  source,
 }) => {
   const [isSaved, setIsSaved] = React.useState(false);
-
+  
   const handleBookMark = () => {
     const newIsSaved = !isSaved; // Toggle the state
     setIsSaved(newIsSaved); // Update the state
@@ -22,6 +23,7 @@ const JobDetailCard = ({
   // Build query string
   const query = new URLSearchParams({
     id,
+    source: source || "external",
     isSaved: isSaved.toString(),
   }).toString();
 

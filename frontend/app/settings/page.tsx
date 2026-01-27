@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Header from "../../../components/Header";
+import Header from "../../components/Header";
 import {
     Person,
     Security,
@@ -61,7 +61,6 @@ const jobLocationOptions = [
 ];
 
 export default function SettingsPage() {
-    const params = useParams();
     const [user, setUser] = useState<UserAccount | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeSection, setActiveSection] =
@@ -102,15 +101,15 @@ export default function SettingsPage() {
         }, []);
 
     useEffect(() => {
-        if (!token || !params.id) return;
+        if (!token) return;
         fetchUserAccount();
-    }, [token, params.id]);
+    }, [token]);
 
     const fetchUserAccount = async () => {
         setLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:3001/api/user/account/${params.id}`,
+                `http://localhost:3001/api/user/account`,
                 {
                     method: "GET",
                     headers: {
@@ -139,7 +138,7 @@ export default function SettingsPage() {
 
         setLoading(true);
         try {
-            const response = await fetch(`/api/users/account/${params.id}`, {
+            const response = await fetch(`/api/users/account`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -174,7 +173,7 @@ export default function SettingsPage() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/users/account/${params.id}/change-password`,
+                `/api/users/account/change-password`,
                 {
                     method: "POST",
                     headers: {

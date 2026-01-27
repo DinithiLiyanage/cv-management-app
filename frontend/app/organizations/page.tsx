@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../contexts/authContext";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import {
     Business,
@@ -14,12 +13,13 @@ import {
     Check,
     Pending,
     Star,
+    Link,
 } from "@mui/icons-material";
 import { Organization, INDUSTRY_OPTIONS } from "../../types";
+import Button from "@mui/material/Button";
 
 export default function OrganizationsPage() {
-    const { userData } = useAuth();
-    const params = useParams();
+    const router = useRouter();
     const [myOrganizations, setMyOrganizations] = useState<Organization[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -31,54 +31,120 @@ export default function OrganizationsPage() {
         industry: "",
         logo: "",
     });
+    const [sortedOrganizations, setSortedOrganizations] = useState<
+        Organization[]
+    >([]);
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchSearch = async () => {
+            if (searchTerm) {
+                const response = await fetch(
+                    `http://localhost:3001/api/user/organizations/search?q=${encodeURIComponent(searchTerm)}`,
+                );
+                const data = await response.json();
+                console.log("Search results:", data);
+                // normalize response to an array of items
+                let items = [];
+                if (Array.isArray(data)) {
+                    items = data;
+                } else {
+                    console.warn(
+                        "Unexpected organizations response shape:",
+                        data,
+                    );
+                    items = [];
+                }
+
+                const sortedOrganizations: Organization[] = items.map(
+                    (entry: any) => {
+                        return {
+                            id: entry?._id,
+                            name: entry?.name || "Unknown",
+                            description: entry?.description || "",
+                            location: entry?.location || "",
+                            industry: entry?.industry || "",
+                            memberCount: entry?.memberCount || 0,
+                            isVerified: !!entry?.isVerified,
+                            membershipStatus: entry?.membership,
+                            logo: entry?.logo || "",
+                        };
+                    },
+                );
+                setSortedOrganizations(sortedOrganizations);
+            }
+        };
+        fetchSearch();
+    }, [searchTerm]);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedData = localStorage.getItem("user_data");
+            if (storedData) {
+                try {
+                    const parsed = JSON.parse(storedData);
+                    setToken(parsed.userToken);
+                } catch (e) {
+                    console.log(
+                        "Error parsing user_data from localStorage:",
+                        e,
+                    );
+                }
+            }
+        }
+    }, []);
 
     useEffect(() => {
         fetchMyOrganizations();
-    }, []);
+    }, [token]);
 
     const fetchMyOrganizations = async () => {
         try {
             setLoading(true);
+            if (!token) return;
 
-            // TODO: Replace with actual API call to get user's organizations
-            const mockMyOrganizations: Organization[] = [
+            const response = await fetch(
+                `http://localhost:3001/api/user/organizations`,
                 {
-                    id: "1",
-                    name: "TechCorp Solutions",
-                    description:
-                        "Leading technology company where I work as a Software Engineer.",
-                    location: "San Francisco, CA",
-                    industry: "Technology",
-                    memberCount: 1250,
-                    isVerified: true,
-                    membershipStatus: "member",
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                 },
-                {
-                    id: "2",
-                    name: "Green Energy Ltd",
-                    description:
-                        "Sustainable energy solutions - my current workplace.",
-                    location: "Austin, TX",
-                    industry: "Energy",
-                    memberCount: 850,
-                    isVerified: true,
-                    membershipStatus: "member",
-                },
-                {
-                    id: "3",
-                    name: "StartupHub Inc",
-                    description:
-                        "Applied for a position here - awaiting response.",
-                    location: "New York, NY",
-                    industry: "Consulting",
-                    memberCount: 450,
-                    isVerified: false,
-                    membershipStatus: "pending",
-                },
-            ];
-            setMyOrganizations(mockMyOrganizations);
+            );
+
+            const data = await response.json();
+
+            // normalize response to an array of items
+            let items = [];
+            if (Array.isArray(data)) {
+                items = data;
+            } else {
+                console.warn("Unexpected organizations response shape:", data);
+                items = [];
+            }
+
+            const processed: Organization[] = items.map((entry: any) => {
+                const orgDoc = entry.organization;
+                const membership = entry.membership;
+
+                return {
+                    id: orgDoc?._id,
+                    name: orgDoc?.name || "Unknown",
+                    description: orgDoc?.description || "",
+                    location: orgDoc?.location || "",
+                    industry: orgDoc?.industry || "",
+                    memberCount: orgDoc?.memberCount || 0,
+                    isVerified: !!orgDoc?.isVerified,
+                    membershipStatus: membership?.role,
+                    logo: orgDoc?.logo || "",
+                };
+            });
+
+            setMyOrganizations(processed);
         } catch (error) {
-            console.error("Error fetching my organizations:", error);
+            console.error("Error: ", error);
         } finally {
             setLoading(false);
         }
@@ -97,17 +163,47 @@ export default function OrganizationsPage() {
             }
 
             const organization: Organization = {
-                id: Date.now().toString(),
                 name: newOrg.name,
                 description: newOrg.description,
                 location: newOrg.location,
                 industry: newOrg.industry,
                 memberCount: 1,
-                isVerified: false,
-                membershipStatus: "member",
+                isVerified: true,
+                membershipStatus: "admin",
             };
 
-            // TODO: Replace with actual API call
+            const response = await fetch(
+                "http://localhost:3001/api/organizations/create",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(organization),
+                },
+            );
+            const data = await response.json();
+            console.log("Organization created:", data);
+            const orgId = data._id;
+
+            const membership = await fetch(
+                `http://localhost:3001/api/user/organizations/join`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        orgId,
+                        role: "admin",
+                    }),
+                },
+            );
+            const membershipData = await membership.json();
+            console.log("Membership created:", membershipData);
+
             setMyOrganizations((prev) => [organization, ...prev]);
             setShowCreateModal(false);
             setNewOrg({
@@ -123,20 +219,46 @@ export default function OrganizationsPage() {
         }
     };
 
-    // Sort organizations: members first, then pending
-    const sortedOrganizations = myOrganizations.sort((a, b) => {
-        if (a.membershipStatus === "member" && b.membershipStatus !== "member")
-            return -1;
-        if (a.membershipStatus !== "member" && b.membershipStatus === "member")
-            return 1;
-        return 0;
-    });
+    const handleJoinOrganization = async (orgId: string | undefined) => {
+        try {
+            if (!orgId || !token) return;
+            const response = await fetch(
+                `http://localhost:3001/api/user/organizations/join`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        orgId,
+                        role: "pending",
+                    }),
+                },
+            );
+            const data = await response.json();
+            console.log("Join request sent:", data);
+            // Update local state to reflect pending status
+            setMyOrganizations((prevOrgs) =>
+                prevOrgs.map((org) =>
+                    org.id === orgId
+                        ? { ...org, membershipStatus: "pending" }
+                        : org,
+                ),
+            );
+            if (data.success) {
+                router.refresh();
+            }
+        } catch (error) {
+            console.error("Error joining organization:", error);
+        }
+    };
 
     const filteredOrganizations = sortedOrganizations.filter(
         (org) =>
             org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             org.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            org.location.toLowerCase().includes(searchTerm.toLowerCase())
+            org.location.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     if (loading) {
@@ -196,6 +318,9 @@ export default function OrganizationsPage() {
                         {filteredOrganizations.map((org) => (
                             <div
                                 key={org.id}
+                                onClick={() =>
+                                    router.push(`/organizations/${org.id}`)
+                                }
                                 className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
                             >
                                 {/* Organization Header */}
@@ -247,21 +372,33 @@ export default function OrganizationsPage() {
                                 {/* Action Button */}
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center">
-                                        {org.membershipStatus === "member" ? (
+                                        {org.membershipStatus === "member" ||
+                                        org.membershipStatus === "admin" ? (
                                             <span className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm">
                                                 <Check className="w-4 h-4 mr-1" />
                                                 Member
                                             </span>
-                                        ) : (
+                                        ) : org.membershipStatus ===
+                                          "pending" ? (
                                             <span className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm">
                                                 <Pending className="w-4 h-4 mr-1" />
                                                 Pending
                                             </span>
+                                        ) : (
+                                            <Button
+                                                onClick={() =>
+                                                    handleJoinOrganization(
+                                                        org.id,
+                                                    )
+                                                }
+                                            >
+                                                <span className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm">
+                                                    <Send className="w-4 h-4 mr-1" />
+                                                    Join
+                                                </span>
+                                            </Button>
                                         )}
                                     </div>
-                                    <button className="text-[#0090D9] hover:text-[#007bb5] text-sm font-medium">
-                                        View Details
-                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -280,6 +417,94 @@ export default function OrganizationsPage() {
                         </div>
                     )}
 
+                    {/* Member of organizations */}
+                    {myOrganizations.length != 0 && !searchTerm && !loading && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {myOrganizations.map((org) => (
+                                <div
+                                    key={org.id}
+                                    onClick={() =>
+                                        router.push(`/organizations/${org.id}`)
+                                    }
+                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
+                                >
+                                    {/* Organization Header */}
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center">
+                                            <div className="w-12 h-12 bg-[#0090D9] rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
+                                                {org.logo ? (
+                                                    <img
+                                                        src={org.logo}
+                                                        alt={org.name}
+                                                        className="w-full h-full rounded-lg object-cover"
+                                                    />
+                                                ) : (
+                                                    org.name
+                                                        .charAt(0)
+                                                        .toUpperCase()
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900 flex items-center">
+                                                    {org.name}
+                                                    {org.isVerified && (
+                                                        <Star className="w-4 h-4 text-yellow-500 ml-1" />
+                                                    )}
+                                                </h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {org.industry}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+                                        {org.description}
+                                    </p>
+
+                                    {/* Location and Members */}
+                                    <div className="space-y-2 mb-4">
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <LocationOn className="w-4 h-4 mr-2" />
+                                            {org.location}
+                                        </div>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <People className="w-4 h-4 mr-2" />
+                                            {org.memberCount.toLocaleString()}{" "}
+                                            members
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center">
+                                            {org.membershipStatus ===
+                                                "member" ||
+                                            org.membershipStatus === "admin" ? (
+                                                <span className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm">
+                                                    <Check className="w-4 h-4 mr-1" />
+                                                    Member
+                                                </span>
+                                            ) : org.membershipStatus ===
+                                              "pending" ? (
+                                                <span className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm">
+                                                    <Pending className="w-4 h-4 mr-1" />
+                                                    Pending
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm">
+                                                    <Send className="w-4 h-4 mr-1" />
+                                                    Join
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     {/* No Organizations */}
                     {myOrganizations.length === 0 &&
                         !searchTerm &&
@@ -289,18 +514,11 @@ export default function OrganizationsPage() {
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                                     No organizations yet
                                 </h3>
-                                <p className="text-gray-600">
+                                <p className="text-gray-600 text-sm">
                                     You haven't joined any organizations yet.
                                     Add your current workplace or apply to new
                                     organizations.
                                 </p>
-                                <button
-                                    onClick={() => setShowCreateModal(true)}
-                                    className="mt-4 flex items-center px-6 py-3 bg-[#0090D9] text-white rounded-lg hover:bg-[#007bb5] transition-colors mx-auto"
-                                >
-                                    <Add className="w-5 h-5 mr-2" />
-                                    Add Organization
-                                </button>
                             </div>
                         )}
                 </div>

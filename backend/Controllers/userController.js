@@ -8,7 +8,7 @@ const { request } = require("express");
 const userController = {
     getProfile: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
             const user = await User.findById(id).select("-password -__v");
             if (!user) return next(CreateError(404, "User not found"));
             res.status(200).json(user);
@@ -20,7 +20,7 @@ const userController = {
 
     updateProfile: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
             if (req.body.notifications !== undefined) {
                 req.body.emailNotifications = req.body.notifications;
                 req.body.pushNotifications = req.body.notifications;
@@ -42,7 +42,7 @@ const userController = {
 
     getAccount: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
             const user = await User.findById(id).select("email name -_id");
             if (!user) return next(CreateError(404, "User not found"));
             res.status(200).json(user);
@@ -54,7 +54,7 @@ const userController = {
 
     updateAccount: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
             const updates = req.body;
             const user = await User.findByIdAndUpdate(id, updates, {
                 new: true,
@@ -69,7 +69,7 @@ const userController = {
 
     changePassword: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
             const { currentPassword, newPassword } = req.body;
             if (!currentPassword || !newPassword) {
                 return next(
@@ -100,7 +100,7 @@ const userController = {
 
     getUserOrganizations: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
 
             // get membership records (lean for plain objects)
             const memberships = await UserOrg.find({ userId: id }).lean();
@@ -127,7 +127,7 @@ const userController = {
 
     requestToJoinOrganization: async (req, res, next) => {
         try {
-            const id = req.params.id;
+            const id = req.user_id;
             const { orgId, role } = req.body;
             const existingRequest = await UserOrg.findOne({
                 userId: id,
@@ -159,7 +159,7 @@ const userController = {
     searchOrganizations: async (req, res, next) => {
         try {
             const q = (req.query.q || "").trim();
-            const userId = req.params.userId;
+            const id = req.user_id;
             console.log("Search query:", q);
 
             let orgs;

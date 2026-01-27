@@ -15,17 +15,17 @@ export default function Header() {
     };
 
     const handleViewProfile = () => {
-        router.push(`/profile/${userData.id}`);
+        router.push(`/profile`);
         setDropdownOpen(false);
     };
 
     const handleSettings = () => {
-        router.push(`/settings/${userData.id}`);
+        router.push(`/settings`);
         setDropdownOpen(false);
     };
 
     const handleOrganizations = () => {
-        router.push(`/organizations/${userData.id}`);
+        router.push(`/organizations`);
         setDropdownOpen(false);
     };
 

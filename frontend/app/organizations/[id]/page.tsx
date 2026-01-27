@@ -1,280 +1,182 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../contexts/authContext";
-import { useParams, useRouter } from "next/navigation";
-import Header from "../../../components/Header";
-import {
-    Business,
-    Add,
-    Search,
-    LocationOn,
-    People,
-    Send,
-    Check,
-    Pending,
-    Star,
-} from "@mui/icons-material";
-import { Organization, INDUSTRY_OPTIONS } from "../../../types";
-import Button from "@mui/material/Button";
+import Header from "@/components/Header";
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { Business, Work, Add, LocationOn } from "@mui/icons-material";
+import { InternalJob, JOB_CATEGORIES } from "../../../types/job";
+import JobDetailCard from "@/components/JobDetailCard";
 
-export default function OrganizationsPage() {
-    const { userData } = useAuth();
+export default function OrganizationDetailPage() {
     const params = useParams();
-    const router = useRouter();
-    const [myOrganizations, setMyOrganizations] = useState<Organization[]>([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [newOrg, setNewOrg] = useState({
-        name: "",
-        description: "",
-        location: "",
-        industry: "",
-        logo: "",
-    });
-    const [sortedOrganizations, setSortedOrganizations] = useState<
-        Organization[]
-    >([]);
-    const [token, setToken] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchSearch = async () => {
-            if (searchTerm) {
-                const response = await fetch(
-                    `http://localhost:3001/api/user/organizations/${
-                        params.id
-                    }/search?q=${encodeURIComponent(searchTerm)}`
-                );
-                const data = await response.json();
-                console.log("Search results:", data);
-                // normalize response to an array of items
-                let items = [];
-                if (Array.isArray(data)) {
-                    items = data;
-                } else {
-                    console.warn(
-                        "Unexpected organizations response shape:",
-                        data
-                    );
-                    items = [];
-                }
-
-                const sortedOrganizations: Organization[] = items.map(
-                    (entry: any) => {
-                        return {
-                            id: entry?._id,
-                            name: entry?.name || "Unknown",
-                            description: entry?.description || "",
-                            location: entry?.location || "",
-                            industry: entry?.industry || "",
-                            memberCount: entry?.memberCount || 0,
-                            isVerified: !!entry?.isVerified,
-                            membershipStatus: entry?.membership,
-                            logo: entry?.logo || "",
-                        };
-                    }
-                );
-                setSortedOrganizations(sortedOrganizations);
-            }
-        };
-        fetchSearch();
-    }, [searchTerm]);
+    const [token, setToken] = React.useState<string | null>(null);
+    const [org, setOrg] = useState<any>(null);
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [showCreateVacancyModal, setShowCreateVacancyModal] =
+        useState<boolean>(false);
+    const [newVacancy, setNewVacancy] = useState<any>({});
+    const [internalJobs, setInternalJobs] = useState<InternalJob[]>([]);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
-            const storedData = localStorage.getItem("user_data");
-            if (storedData) {
-                try {
-                    const parsed = JSON.parse(storedData);
-                    setToken(parsed.userToken);
-                } catch (e) {
-                    console.log(
-                        "Error parsing user_data from localStorage:",
-                        e
-                    );
+            const userData = localStorage.getItem("user_data");
+            if (!userData) {
+                window.location.href = "/login";
+            } else {
+                const parsedData = JSON.parse(userData);
+                if (!parsedData.userToken) {
+                    window.location.href = "/login";
                 }
+                setToken(parsedData.userToken);
             }
         }
     }, []);
 
     useEffect(() => {
-        fetchMyOrganizations();
-    }, [token, params.id]);
+        if (token) {
+            fetchOrganizationDetails();
+        }
+    }, [params.id, token]);
 
-    const fetchMyOrganizations = async () => {
+    const fetchOrganizationDetails = async () => {
         try {
-            setLoading(true);
-            if (!token) return;
-
             const response = await fetch(
-                `http://localhost:3001/api/user/organizations/${params.id}`,
+                `http://localhost:3001/api/organizations/${params.id}`,
                 {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                }
+                },
+            );
+            if (!response.ok) {
+                throw new Error("Failed to fetch organization details");
+            }
+            const data = await response.json();
+            console.log("Fetched Data:", data);
+            setOrg(data.organization);
+            setIsAdmin(data.role === "admin");
+
+            const responseJobs = await fetch(
+                `http://localhost:3001/api/jobs/${params.id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
             );
 
-            const data = await response.json();
-
-            // normalize response to an array of items
-            let items = [];
-            if (Array.isArray(data)) {
-                items = data;
-            } else {
-                console.warn("Unexpected organizations response shape:", data);
-                items = [];
-            }
-
-            const processed: Organization[] = items.map((entry: any) => {
-                const orgDoc = entry.organization;
-                const membership = entry.membership;
-
-                return {
-                    id: orgDoc?._id,
-                    name: orgDoc?.name || "Unknown",
-                    description: orgDoc?.description || "",
-                    location: orgDoc?.location || "",
-                    industry: orgDoc?.industry || "",
-                    memberCount: orgDoc?.memberCount || 0,
-                    isVerified: !!orgDoc?.isVerified,
-                    membershipStatus: membership?.role,
-                    logo: orgDoc?.logo || "",
-                };
-            });
-
-            setMyOrganizations(processed);
+            const jobsData = await responseJobs.json();
+            setInternalJobs(jobsData || []);
+            console.log("Internal Jobs:", jobsData);
         } catch (error) {
-            console.error("Error: ", error);
+            console.error("Error fetching organization details:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreateOrganization = async () => {
+    const handleAddVacancy = async () => {
         try {
             if (
-                !newOrg.name ||
-                !newOrg.description ||
-                !newOrg.location ||
-                !newOrg.industry
+                !newVacancy.title ||
+                !newVacancy.location ||
+                !newVacancy.description
             ) {
                 alert("Please fill in all required fields");
                 return;
             }
 
-            const organization: Organization = {
-                name: newOrg.name,
-                description: newOrg.description,
-                location: newOrg.location,
-                industry: newOrg.industry,
-                memberCount: 1,
-                isVerified: true,
-                membershipStatus: "admin",
+            const vacancyData = {
+                orgId: params.id,
+                company: org.name,
+                title: newVacancy.title,
+                location: newVacancy.location,
+                category: newVacancy.category,
+                description: newVacancy.description,
+                // Convert textarea strings to arrays by splitting on newlines
+                requirements: newVacancy.requirements
+                    ? (newVacancy.requirements as any)
+                          .split("\n")
+                          .filter((line: string) => line.trim())
+                    : [],
+                responsibilities: newVacancy.responsibilities
+                    ? (newVacancy.responsibilities as any)
+                          .split("\n")
+                          .filter((line: string) => line.trim())
+                    : [],
+                benefits: newVacancy.benefits
+                    ? (newVacancy.benefits as any)
+                          .split("\n")
+                          .filter((line: string) => line.trim())
+                    : [],
+                salary_min: newVacancy.salary_min || 0,
+                salary_max: newVacancy.salary_max || 0,
+                jobType:
+                    ((newVacancy.jobType as any) || []).length > 0
+                        ? (newVacancy.jobType as any)[0]
+                        : "full_time",
+                deadline: newVacancy.deadline,
             };
 
-            const response = await fetch(
-                "http://localhost:3001/api/organizations/create",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(organization),
-                }
-            );
-            const data = await response.json();
-            console.log("Organization created:", data);
-            const orgId = data._id;
-
-            const membership = await fetch(
-                `http://localhost:3001/api/user/organizations/${params.id}/join`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        orgId,
-                        role: "admin",
-                    }),
-                }
-            );
-            const membershipData = await membership.json();
-            console.log("Membership created:", membershipData);
-
-            setMyOrganizations((prev) => [organization, ...prev]);
-            setShowCreateModal(false);
-            setNewOrg({
-                name: "",
-                description: "",
-                location: "",
-                industry: "",
-                logo: "",
+            const response = await fetch(`http://localhost:3001/api/jobs`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(vacancyData),
             });
-            console.log("Organization created successfully");
-        } catch (error) {
-            console.error("Error creating organization:", error);
-        }
-    };
 
-    const handleJoinOrganization = async (orgId: string | undefined) => {
-        try {
-            if (!orgId || !token) return;
-            const response = await fetch(
-                `http://localhost:3001/api/user/organizations/${params.id}/join`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        orgId,
-                        role: "pending",
-                    }),
-                }
-            );
-            const data = await response.json();
-            console.log("Join request sent:", data);
-            // Update local state to reflect pending status
-            setMyOrganizations((prevOrgs) =>
-                prevOrgs.map((org) =>
-                    org.id === orgId
-                        ? { ...org, membershipStatus: "pending" }
-                        : org
-                )
-            );
-            if (data.success) {
-                router.refresh();
+            if (!response.ok) {
+                throw new Error("Failed to create vacancy");
             }
+
+            const data = await response.json();
+            console.log("Vacancy created:", data);
+            alert("Vacancy created successfully!");
+            setShowCreateVacancyModal(false);
+            setNewVacancy({});
+            // Refresh organization details to show new vacancy
+            fetchOrganizationDetails();
         } catch (error) {
-            console.error("Error joining organization:", error);
+            console.error("Error adding vacancy:", error);
+            alert("Failed to create vacancy. Please try again.");
         }
     };
-
-    const filteredOrganizations = sortedOrganizations.filter(
-        (org) =>
-            org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            org.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            org.location.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     if (loading) {
         return (
-            <div className="min-h-screen">
-                <Header />
-                <div className="flex items-center justify-center h-64">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0090D9] mx-auto"></div>
-                        <p className="mt-4 text-gray-600">
-                            Loading organizations...
-                        </p>
+            <div className="w-full h-full">
+                <div className="min-h-screen">
+                    <Header />
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0090D9] mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!org) {
+        return (
+            <div className="w-full h-full">
+                <div className="min-h-screen">
+                    <Header />
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <Business className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                Organization not found
+                            </h3>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -283,292 +185,117 @@ export default function OrganizationsPage() {
 
     return (
         <div className="h-full w-full">
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen">
                 <Header />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Page Header */}
-                    <div className="mb-6">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                            Organizations
-                        </h1>
-                    </div>
-
-                    {/* Search and Create */}
-                    <div className="mb-8 flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <div className="absolute inset-y-0 left-3 flex justify-center items-center pointer-events-none">
-                                <Search className="text-gray-400 w-4 h-4" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search your organizations by name, industry, or location..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 text-gray-900 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
-                            />
-                        </div>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="flex items-center px-6 py-3 bg-[#0090D9] text-white text-base rounded-lg hover:bg-[#007bb5] transition-colors whitespace-nowrap"
-                        >
-                            <Add className="w-5 h-5 mr-2" />
-                            Add Organization
-                        </button>
-                    </div>
-
-                    {/* Organizations Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredOrganizations.map((org) => (
-                            <div
-                                key={org.id}
-                                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
-                            >
-                                {/* Organization Header */}
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center">
-                                        <div className="w-12 h-12 bg-[#0090D9] rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
-                                            {org.logo ? (
-                                                <img
-                                                    src={org.logo}
-                                                    alt={org.name}
-                                                    className="w-full h-full rounded-lg object-cover"
-                                                />
-                                            ) : (
-                                                org.name.charAt(0).toUpperCase()
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900 flex items-center">
-                                                {org.name}
-                                                {org.isVerified && (
-                                                    <Star className="w-4 h-4 text-yellow-500 ml-1" />
-                                                )}
-                                            </h3>
-                                            <p className="text-sm text-gray-600">
-                                                {org.industry}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Description */}
-                                <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-                                    {org.description}
-                                </p>
-
-                                {/* Location and Members */}
-                                <div className="space-y-2 mb-4">
-                                    <div className="flex items-center text-sm text-gray-600">
-                                        <LocationOn className="w-4 h-4 mr-2" />
-                                        {org.location}
-                                    </div>
-                                    <div className="flex items-center text-sm text-gray-600">
-                                        <People className="w-4 h-4 mr-2" />
-                                        {org.memberCount.toLocaleString()}{" "}
-                                        members
-                                    </div>
-                                </div>
-
-                                {/* Action Button */}
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center">
-                                        {org.membershipStatus === "member" ||
-                                        org.membershipStatus === "admin" ? (
-                                            <span className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm">
-                                                <Check className="w-4 h-4 mr-1" />
-                                                Member
-                                            </span>
-                                        ) : org.membershipStatus ===
-                                          "pending" ? (
-                                            <span className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm">
-                                                <Pending className="w-4 h-4 mr-1" />
-                                                Pending
-                                            </span>
+                {org && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            {/* Organization Header */}
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <div className="w-12 h-12 bg-[#0090D9] rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3 mb-4">
+                                        {org.logo ? (
+                                            <img
+                                                src={org.logo}
+                                                alt={org.name}
+                                                className="w-full h-full rounded-lg object-cover"
+                                            />
                                         ) : (
-                                            <Button
-                                                onClick={() =>
-                                                    handleJoinOrganization(
-                                                        org.id
-                                                    )
-                                                }
-                                            >
-                                                <span className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm">
-                                                    <Send className="w-4 h-4 mr-1" />
-                                                    Join
-                                                </span>
-                                            </Button>
+                                            org.name.charAt(0).toUpperCase()
                                         )}
                                     </div>
-                                    <button className="text-[#0090D9] hover:text-[#007bb5] text-sm font-medium">
-                                        View Details
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* No Results */}
-                    {filteredOrganizations.length === 0 && searchTerm && (
-                        <div className="text-center py-12">
-                            <Business className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                No organizations found
-                            </h3>
-                            <p className="text-gray-600">
-                                Try adjusting your search criteria.
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Member of organizations */}
-                    {myOrganizations.length != 0 && !searchTerm && !loading && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {myOrganizations.map((org) => (
-                                <div
-                                    key={org.id}
-                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
-                                >
-                                    {/* Organization Header */}
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center">
-                                            <div className="w-12 h-12 bg-[#0090D9] rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
-                                                {org.logo ? (
-                                                    <img
-                                                        src={org.logo}
-                                                        alt={org.name}
-                                                        className="w-full h-full rounded-lg object-cover"
-                                                    />
-                                                ) : (
-                                                    org.name
-                                                        .charAt(0)
-                                                        .toUpperCase()
-                                                )}
-                                            </div>
-                                            <div>
-                                                <h3 className="font-semibold text-gray-900 flex items-center">
-                                                    {org.name}
-                                                    {org.isVerified && (
-                                                        <Star className="w-4 h-4 text-yellow-500 ml-1" />
-                                                    )}
-                                                </h3>
-                                                <p className="text-sm text-gray-600">
-                                                    {org.industry}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Description */}
-                                    <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+                                    <h1 className="text-5xl font-bold text-gray-900 mb-4">
+                                        {org.name}
+                                    </h1>
+                                    <p className="text-gray-600 text-base mb-4">
                                         {org.description}
                                     </p>
 
-                                    {/* Location and Members */}
-                                    <div className="space-y-2 mb-4">
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <LocationOn className="w-4 h-4 mr-2" />
-                                            {org.location}
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <People className="w-4 h-4 mr-2" />
-                                            {org.memberCount.toLocaleString()}{" "}
-                                            members
-                                        </div>
-                                    </div>
+                                    <p className="text-gray-600 text-base font-bold mb-2">
+                                        Location: {org.location}
+                                    </p>
 
-                                    {/* Action Button */}
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center">
-                                            {org.membershipStatus ===
-                                                "member" ||
-                                            org.membershipStatus === "admin" ? (
-                                                <span className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm">
-                                                    <Check className="w-4 h-4 mr-1" />
-                                                    Member
-                                                </span>
-                                            ) : org.membershipStatus ===
-                                              "pending" ? (
-                                                <span className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm">
-                                                    <Pending className="w-4 h-4 mr-1" />
-                                                    Pending
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm">
-                                                    <Send className="w-4 h-4 mr-1" />
-                                                    Join
-                                                </span>
-                                            )}
-                                        </div>
-                                        <button className="text-[#0090D9] hover:text-[#007bb5] text-sm font-medium">
-                                            View Details
-                                        </button>
-                                    </div>
+                                    <p className="text-gray-600 text-base font-bold mb-2">
+                                        Industry: {org.industry}
+                                    </p>
+
+                                    <p className="text-gray-600 text-base font-bold mb-2">
+                                        Staff: {org.memberCount} members
+                                    </p>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* No Organizations */}
-                    {myOrganizations.length === 0 &&
-                        !searchTerm &&
-                        !loading && (
-                            <div className="text-center py-12">
-                                <Business className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                    No organizations yet
-                                </h3>
-                                <p className="text-gray-600 text-sm">
-                                    You haven't joined any organizations yet.
-                                    Add your current workplace or apply to new
-                                    organizations.
-                                </p>
                             </div>
-                        )}
-                </div>
 
-                {/* Create Organization Modal */}
-                {showCreateModal && (
-                    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center p-4 z-50">
-                        <div className="bg-white rounded-lg max-w-md w-full p-6">
+                            {/* Vacancies Section */}
                             <h2 className="text-xl font-bold text-gray-900 mb-4">
-                                Add New Organization
+                                Open Positions
+                            </h2>
+                            {isAdmin && (
+                                <button
+                                    onClick={() =>
+                                        setShowCreateVacancyModal(true)
+                                    }
+                                    className="flex items-center px-4 py-2 bg-[#0090D9] text-white text-base rounded-lg hover:bg-[#007bb5] ml-auto mb-4"
+                                >
+                                    <Add className="w-3 h-3 mr-2" />
+                                    Add Vacancy
+                                </button>
+                            )}
+                            {/* List vacancies here */}
+                            {internalJobs.length == 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    <Work className="w-12 h-12 mx-auto mb-2" />
+                                    <p>No vacancies posted yet</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {internalJobs.map((job) => (
+                                        <JobDetailCard
+                                            key={job._id}
+                                            id={job._id}
+                                            position={job.title}
+                                            company={job.company || org.name}
+                                            location={
+                                                job.location || "Not specified"
+                                            }
+                                            tags={[job.category]}
+                                            salary={
+                                                job.salary_min && job.salary_max
+                                                    ? `$${Math.round(job.salary_min / 1000)}K - $${Math.round(job.salary_max / 1000)}K`
+                                                    : "Not specified"
+                                            }
+                                            source={job.source}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {showCreateVacancyModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-xl font-bold mb-4">
+                                Create New Vacancy
                             </h2>
 
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Organization Name *
+                                        Job Title *
                                     </label>
                                     <input
                                         type="text"
-                                        value={newOrg.name}
+                                        value={newVacancy.title || ""}
                                         onChange={(e) =>
-                                            setNewOrg({
-                                                ...newOrg,
-                                                name: e.target.value,
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                title: e.target.value,
                                             })
                                         }
                                         className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
-                                        placeholder="Enter organization name"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Description *
-                                    </label>
-                                    <textarea
-                                        value={newOrg.description}
-                                        onChange={(e) =>
-                                            setNewOrg({
-                                                ...newOrg,
-                                                description: e.target.value,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
-                                        rows={3}
-                                        placeholder="Describe your organization"
+                                        placeholder="e.g., Senior Software Engineer"
                                     />
                                 </div>
 
@@ -578,56 +305,277 @@ export default function OrganizationsPage() {
                                     </label>
                                     <input
                                         type="text"
-                                        value={newOrg.location}
+                                        value={newVacancy.location || ""}
                                         onChange={(e) =>
-                                            setNewOrg({
-                                                ...newOrg,
+                                            setNewVacancy({
+                                                ...newVacancy,
                                                 location: e.target.value,
                                             })
                                         }
                                         className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
-                                        placeholder="City, State/Country"
+                                        placeholder="e.g., San Francisco, CA or Remote"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Industry *
+                                        Category *
                                     </label>
                                     <select
-                                        value={newOrg.industry}
+                                        value={newVacancy.category || ""}
                                         onChange={(e) =>
-                                            setNewOrg({
-                                                ...newOrg,
-                                                industry: e.target.value,
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                category: e.target.value,
                                             })
                                         }
                                         className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
                                     >
-                                        {INDUSTRY_OPTIONS.map((option) => (
+                                        <option value="">
+                                            Select a category
+                                        </option>
+                                        {JOB_CATEGORIES.map((category) => (
                                             <option
-                                                key={option.value}
-                                                value={option.value}
+                                                key={category}
+                                                value={category}
                                             >
-                                                {option.label}
+                                                {category}
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Job Type
+                                    </label>
+                                    <div className="space-y-2">
+                                        {[
+                                            {
+                                                value: "full_time",
+                                                label: "Full Time",
+                                            },
+                                            {
+                                                value: "part_time",
+                                                label: "Part Time",
+                                            },
+                                            {
+                                                value: "contract",
+                                                label: "Contract",
+                                            },
+                                            {
+                                                value: "permanent",
+                                                label: "Permanent",
+                                            },
+                                            {
+                                                value: "internship",
+                                                label: "Internship",
+                                            },
+                                        ].map((type) => (
+                                            <label
+                                                key={type.value}
+                                                className="flex items-center"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={(
+                                                        (newVacancy.jobType as any) ||
+                                                        []
+                                                    ).includes(type.value)}
+                                                    onChange={(e) => {
+                                                        const currentTypes =
+                                                            (newVacancy.jobType as any) ||
+                                                            [];
+                                                        const newTypes = e
+                                                            .target.checked
+                                                            ? [
+                                                                  ...currentTypes,
+                                                                  type.value,
+                                                              ]
+                                                            : currentTypes.filter(
+                                                                  (t: string) =>
+                                                                      t !==
+                                                                      type.value,
+                                                              );
+                                                        setNewVacancy({
+                                                            ...newVacancy,
+                                                            jobType: newTypes,
+                                                        });
+                                                    }}
+                                                    className="w-4 h-4 text-[#0090D9] border-gray-300 rounded focus:ring-[#0090D9]"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">
+                                                    {type.label}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Min Salary
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={newVacancy.salary_min || ""}
+                                            onChange={(e) =>
+                                                setNewVacancy({
+                                                    ...newVacancy,
+                                                    salary_min: parseInt(
+                                                        e.target.value,
+                                                    ),
+                                                })
+                                            }
+                                            className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                            placeholder="50000"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Max Salary
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={newVacancy.salary_max || ""}
+                                            onChange={(e) =>
+                                                setNewVacancy({
+                                                    ...newVacancy,
+                                                    salary_max: parseInt(
+                                                        e.target.value,
+                                                    ),
+                                                })
+                                            }
+                                            className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                            placeholder="80000"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Application Deadline
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={
+                                            newVacancy.deadline
+                                                ? typeof newVacancy.deadline ===
+                                                  "string"
+                                                    ? newVacancy.deadline
+                                                    : new Date(
+                                                          newVacancy.deadline,
+                                                      )
+                                                          .toISOString()
+                                                          .split("T")[0]
+                                                : new Date()
+                                                      .toISOString()
+                                                      .split("T")[0]
+                                        }
+                                        onChange={(e) =>
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                deadline: new Date(
+                                                    e.target.value,
+                                                ),
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Description *
+                                    </label>
+                                    <textarea
+                                        value={newVacancy.description || ""}
+                                        onChange={(e) =>
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                description: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                        rows={4}
+                                        placeholder="Describe the position..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Requirements
+                                    </label>
+                                    <textarea
+                                        value={newVacancy.requirements || ""}
+                                        onChange={(e) =>
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                requirements: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                        rows={3}
+                                        placeholder="List the requirements (one per line)..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Responsibilities
+                                    </label>
+                                    <textarea
+                                        value={
+                                            newVacancy.responsibilities || ""
+                                        }
+                                        onChange={(e) =>
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                responsibilities:
+                                                    e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                        rows={3}
+                                        placeholder="List the key responsibilities..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Benefits
+                                    </label>
+                                    <textarea
+                                        value={newVacancy.benefits || ""}
+                                        onChange={(e) =>
+                                            setNewVacancy({
+                                                ...newVacancy,
+                                                benefits: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent outline-none"
+                                        rows={3}
+                                        placeholder="List the benefits offered..."
+                                    />
                                 </div>
                             </div>
 
                             <div className="flex gap-3 mt-6">
                                 <button
-                                    onClick={() => setShowCreateModal(false)}
+                                    onClick={() => {
+                                        setShowCreateVacancyModal(false);
+                                        setNewVacancy({});
+                                    }}
                                     className="flex-1 px-4 py-2 text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleCreateOrganization}
+                                    onClick={handleAddVacancy}
                                     className="flex-1 px-4 py-2 text-base bg-[#0090D9] text-white rounded-lg hover:bg-[#007bb5] transition-colors"
                                 >
-                                    Add Organization
+                                    Create Vacancy
                                 </button>
                             </div>
                         </div>

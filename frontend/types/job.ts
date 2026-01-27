@@ -3,8 +3,8 @@
 export interface Job {
     id: string;
     title: string;
-    company: string;
-    location: string;
+    company?: string;
+    location?: string;
     category: string;
     salary_min?: number;
     salary_max?: number;
@@ -22,17 +22,31 @@ export interface JobSearchParams {
 }
 
 export const JOB_CATEGORIES = [
-    "IT Jobs",
-    "Engineering Jobs",
-    "Marketing Jobs",
-    "Sales Jobs",
-    "Customer Service Jobs",
-    "Healthcare & Nursing Jobs",
-    "Education Jobs",
-    "Finance Jobs",
-    "HR & Recruitment Jobs",
-    "Legal Jobs",
+    "IT",
+    "Engineering",
+    "Marketing",
+    "Sales",
+    "Customer Service",
+    "Healthcare & Nursing",
+    "Education",
+    "Finance",
+    "HR & Recruitment",
+    "Legal",
     "Other",
 ] as const;
+
+export interface InternalJob extends Job {
+    _id?: string;
+    source: "internal";
+    orgId: string;
+    postedBy: string;
+    requirements?: string[];
+    responsibilities?: string[];
+    benefits?: string[];
+    deadline?: Date;
+    status: "open" | "closed";
+    jobType: string[];
+    createdBy: string;
+}
 
 export type JobCategory = typeof JOB_CATEGORIES[number];
