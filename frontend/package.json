@@ -6,14 +6,16 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+   "postinstall": "copy node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs public\\pdf.worker.min.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
-    "next": "15.4.5",
+    "next": "^15.5.12",
+    "pdfjs-dist": "^4.10.38",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },

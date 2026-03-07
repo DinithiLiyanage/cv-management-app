@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { Business, Work, Add, LocationOn } from "@mui/icons-material";
 import { InternalJob, JOB_CATEGORIES } from "../../../types/job";
 import JobDetailCard from "@/components/JobDetailCard";
+import { API_URL } from "@/lib/config";
 
 export default function OrganizationDetailPage() {
     const params = useParams();
@@ -42,7 +43,7 @@ export default function OrganizationDetailPage() {
     const fetchOrganizationDetails = async () => {
         try {
             const response = await fetch(
-                `http://localhost:3001/api/organizations/${params.id}`,
+                `${API_URL}/api/organizations/${params.id}`,
                 {
                     method: "GET",
                     headers: {
@@ -60,7 +61,7 @@ export default function OrganizationDetailPage() {
             setIsAdmin(data.role === "admin");
 
             const responseJobs = await fetch(
-                `http://localhost:3001/api/jobs/${params.id}`,
+                `${API_URL}/api/jobs/${params.id}`,
                 {
                     method: "GET",
                     headers: {
@@ -123,7 +124,7 @@ export default function OrganizationDetailPage() {
                 deadline: newVacancy.deadline,
             };
 
-            const response = await fetch(`http://localhost:3001/api/jobs`, {
+            const response = await fetch(`${API_URL}/api/jobs`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

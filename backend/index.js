@@ -1,6 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const {
+    scheduleJobStatusUpdates,
+    checkExpiredJobsNow,
+} = require("./Utils/jobScheduler");
 
 const PORT = process.env.PORT || 3001;
 
@@ -15,11 +19,20 @@ app.use("/api/auth", require("./Routers/authRoute"));
 app.use("/api/jobs", require("./Routers/jobsRoute"));
 app.use("/api/user", require("./Routers/userRoute"));
 app.use("/api/organizations", require("./Routers/orgRoute"));
+app.use("/api/applications", require("./Routers/applicationRoute"));
 
 // Mongo DB connection
 mongoose
     .connect("mongodb://127.0.0.1:27017/JobApp")
-    .then(() => console.log("Connected to MongoDB!"))
+    .then(() => {
+        console.log("Connected to MongoDB!");
+
+        // Check for expired jobs immediately on startup
+        checkExpiredJobsNow();
+
+        // Start the scheduled task for auto-closing expired jobs
+        scheduleJobStatusUpdates();
+    })
     .catch((error) => console.error("Failed to connect:", error));
 
 // Global error handler

@@ -9,128 +9,150 @@ import Step3Skills from "./components/Step3Skills";
 import Step4Preferences from "./components/Step4Preferences";
 import StepIndicator from "./components/StepIndicator";
 import NavigationButtons from "./components/NavigationButtons";
+import { API_URL } from "../../lib/config";
 
 const TOTAL_STEPS = 4;
 
 type ProffessionalInfo = {
-  jobTitle: string;
-  company: string;
-  startDate: string;
-  endDate: string;
-  industry: string;
-}
+    jobTitle: string;
+    company: string;
+    startDate: string;
+    endDate: string;
+    industry: string;
+};
 
 export default function OnboardingPage() {
-  const { userData } = useAuth();
-  const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Personal Info (Step 1)
-    profilePicture: undefined as string | undefined,
-    bio: "",
-    location: "",
-    phone: "",
-    // Professional Info (Step 2)
-    experiences: [] as ProffessionalInfo[],
-    // Skills (Step 3)
-    skills: [] as string[],
-    certifications: [] as string[],
-    salaryExpectation: "",
-    // Preferences (Step 4)
-    jobType: [] as string[],
-    workLocation: "",
-    notifications: true,
-  });
+    const { userData } = useAuth();
+    const router = useRouter();
+    const [currentStep, setCurrentStep] = useState(1);
+    const [formData, setFormData] = useState({
+        // Personal Info (Step 1)
+        profilePicture: undefined as string | undefined,
+        bio: "",
+        location: "",
+        phone: "",
+        // Professional Info (Step 2)
+        experiences: [] as ProffessionalInfo[],
+        // Skills (Step 3)
+        skills: [] as string[],
+        certifications: [] as string[],
+        salaryExpectation: "",
+        // Preferences (Step 4)
+        jobType: [] as string[],
+        workLocation: "",
+        notifications: true,
+    });
 
-  const nextStep = () =>
-    setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+    const nextStep = () =>
+        setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+    const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
-  const updateFormData = (newData: Partial<typeof formData>) => {
-    setFormData((prev) => ({ ...prev, ...newData }));
-  };
+    const updateFormData = (newData: Partial<typeof formData>) => {
+        setFormData((prev) => ({ ...prev, ...newData }));
+    };
 
-  const handleFinish = async () => {
-    try {
-      // Send complete profile data to backend
-      const response = await fetch(
-        `http://localhost:3001/api/user/profile/${userData.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
+    const handleFinish = async () => {
+        try {
+            // Send complete profile data to backend
+            const response = await fetch(
+                `${API_URL}/api/user/profile/${userData.id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                },
+            );
+
+            if (response.ok) {
+                router.push("/home"); // Redirect to main app
+            } else {
+                console.error("Failed to update profile");
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
         }
-      );
+    };
 
-      if (response.ok) {
-        router.push("/home"); // Redirect to main app
-      } else {
-        console.error("Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    }
-  };
+    const handleSkip = () => {
+        router.push("/home"); // Allow users to skip onboarding
+    };
 
-  const handleSkip = () => {
-    router.push("/home"); // Allow users to skip onboarding
-  };
+    const renderStep = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <Step1PersonalInfo
+                        data={formData}
+                        updateData={updateFormData}
+                    />
+                );
+            case 2:
+                return (
+                    <Step2ProfessionalInfo
+                        data={
+                            formData.experiences[0] || {
+                                jobTitle: "",
+                                company: "",
+                                startDate: "",
+                                endDate: "",
+                                industry: "",
+                            }
+                        }
+                        updateData={updateFormData}
+                    />
+                );
+            case 3:
+                return (
+                    <Step3Skills data={formData} updateData={updateFormData} />
+                );
+            case 4:
+                return (
+                    <Step4Preferences
+                        data={formData}
+                        updateData={updateFormData}
+                    />
+                );
+            default:
+                return null;
+        }
+    };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step1PersonalInfo data={formData} updateData={updateFormData} />
-        );
-      case 2:
-        return (
-          <Step2ProfessionalInfo
-            data={formData.experiences[0] || { jobTitle: "", company: "", startDate: "", endDate: "", industry: "" }}
-            updateData={updateFormData}
-          />
-        );
-      case 3:
-        return <Step3Skills data={formData} updateData={updateFormData} />;
-      case 4:
-        return <Step4Preferences data={formData} updateData={updateFormData} />;
-      default:
-        return null;
-    }
-  };
+    return (
+        <div className="h-full">
+            <div className="min-h-screen bg-gradient-to-br from-[#E6F7FF] to-[#B8E7FF] py-2 px-4">
+                <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-3 md:p-8 mx-auto my-8">
+                    {/* Header */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-2xl md:text-3xl font-bold text-[#0090D9] mb-2">
+                            Welcome to ApplyX!
+                        </h1>
+                        <p className="text-gray-600 text-sm md:text-base">
+                            Let's set up your profile to get you started
+                        </p>
+                    </div>
 
-  return (
-    <div className="h-full">
-      <div className="min-h-screen bg-gradient-to-br from-[#E6F7FF] to-[#B8E7FF] py-2 px-4">
-        <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-3 md:p-8 mx-auto my-8">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#0090D9] mb-2">
-              Welcome to ApplyX!
-            </h1>
-            <p className="text-gray-600 text-sm md:text-base">
-              Let's set up your profile to get you started
-            </p>
-          </div>
+                    {/* Step Indicator */}
+                    <StepIndicator
+                        currentStep={currentStep}
+                        totalSteps={TOTAL_STEPS}
+                    />
 
-          {/* Step Indicator */}
-          <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+                    {/* Step Content */}
+                    <div className="mb-8 overflow-visible">{renderStep()}</div>
 
-          {/* Step Content */}
-          <div className="mb-8 overflow-visible">{renderStep()}</div>
-
-          {/* Navigation */}
-          <NavigationButtons
-            currentStep={currentStep}
-            totalSteps={TOTAL_STEPS}
-            onNext={nextStep}
-            onPrev={prevStep}
-            onFinish={handleFinish}
-            onSkip={handleSkip}
-          />
+                    {/* Navigation */}
+                    <NavigationButtons
+                        currentStep={currentStep}
+                        totalSteps={TOTAL_STEPS}
+                        onNext={nextStep}
+                        onPrev={prevStep}
+                        onFinish={handleFinish}
+                        onSkip={handleSkip}
+                    />
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

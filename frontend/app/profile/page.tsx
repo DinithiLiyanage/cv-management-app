@@ -5,6 +5,7 @@ import Header from "../../components/Header";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Person, Edit, Save, Cancel, PhotoCamera } from "@mui/icons-material";
+import { API_URL } from "../../lib/config";
 
 interface ProfessionalExperience {
     jobTitle?: string;
@@ -72,15 +73,12 @@ export default function ProfilePage() {
 
         const fetchUserProfile = async () => {
             try {
-                const response = await fetch(
-                    `http://localhost:3001/api/user/profile`,
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+                const response = await fetch(`${API_URL}/api/user/profile`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
                 if (response.status === 401) {
                     window.location.href = "/login";
                     return;
@@ -110,17 +108,14 @@ export default function ProfilePage() {
         if (!token || !editedUser) return;
         setLoading(true);
         try {
-            const response = await fetch(
-                `http://localhost:3001/api/user/profile`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(editedUser),
-                }
-            );
+            const response = await fetch(`${API_URL}/api/user/profile`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(editedUser),
+            });
 
             if (response.ok) {
                 const updatedUser = await response.json();
@@ -167,7 +162,7 @@ export default function ProfilePage() {
         if (editedUser) {
             updateField(
                 "skills",
-                (editedUser.skills || []).filter((s) => s !== skill)
+                (editedUser.skills || []).filter((s) => s !== skill),
             );
         }
     };
@@ -175,7 +170,7 @@ export default function ProfilePage() {
     const removeExperience = (index: number) => {
         if (editedUser) {
             const updatedExperiences = (editedUser.experiences || []).filter(
-                (_, i) => i !== index
+                (_, i) => i !== index,
             );
             updateField("experiences", updatedExperiences);
         }
@@ -185,7 +180,7 @@ export default function ProfilePage() {
         if (editedUser) {
             updateField(
                 "certifications",
-                (editedUser.certifications || []).filter((c) => c !== cert)
+                (editedUser.certifications || []).filter((c) => c !== cert),
             );
         }
     };
@@ -371,7 +366,7 @@ export default function ProfilePage() {
                                         onChange={(e) =>
                                             updateField(
                                                 "location",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         className="w-full px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0090D9] focus:border-transparent"
@@ -532,7 +527,7 @@ export default function ProfilePage() {
                                                         >
                                                             {option}
                                                         </option>
-                                                    )
+                                                    ),
                                                 )}
                                             </select>
                                         </div>
@@ -550,7 +545,7 @@ export default function ProfilePage() {
                                                                 ...(editedUser?.experiences ??
                                                                     []),
                                                                 newExperience,
-                                                            ]
+                                                            ],
                                                         );
                                                         setNewExperience({
                                                             jobTitle: "",
@@ -560,7 +555,7 @@ export default function ProfilePage() {
                                                             industry: "",
                                                         });
                                                         setEditingExperienceIdx(
-                                                            null
+                                                            null,
                                                         );
                                                     }
                                                 }}
@@ -578,7 +573,7 @@ export default function ProfilePage() {
                                                         industry: "",
                                                     });
                                                     setEditingExperienceIdx(
-                                                        null
+                                                        null,
                                                     );
                                                 }}
                                                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm"
@@ -620,7 +615,7 @@ export default function ProfilePage() {
                                                                     e.target.value;
                                                                 updateField(
                                                                     "experiences",
-                                                                    updated
+                                                                    updated,
                                                                 );
                                                             }}
                                                             className="w-full px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-md"
@@ -649,7 +644,7 @@ export default function ProfilePage() {
                                                                     e.target.value;
                                                                 updateField(
                                                                     "experiences",
-                                                                    updated
+                                                                    updated,
                                                                 );
                                                             }}
                                                             className="w-full px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-md"
@@ -668,7 +663,7 @@ export default function ProfilePage() {
                                                                     ""
                                                                 }
                                                                 onChange={(
-                                                                    e
+                                                                    e,
                                                                 ) => {
                                                                     const updated =
                                                                         [
@@ -681,7 +676,7 @@ export default function ProfilePage() {
                                                                         e.target.value;
                                                                     updateField(
                                                                         "experiences",
-                                                                        updated
+                                                                        updated,
                                                                     );
                                                                 }}
                                                                 className="w-full px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-md"
@@ -699,7 +694,7 @@ export default function ProfilePage() {
                                                                     ""
                                                                 }
                                                                 onChange={(
-                                                                    e
+                                                                    e,
                                                                 ) => {
                                                                     const updated =
                                                                         [
@@ -712,7 +707,7 @@ export default function ProfilePage() {
                                                                         e.target.value;
                                                                     updateField(
                                                                         "experiences",
-                                                                        updated
+                                                                        updated,
                                                                     );
                                                                 }}
                                                                 className="w-full px-2 py-2 text-sm text-gray-600 border border-gray-300 rounded-md"
@@ -724,7 +719,7 @@ export default function ProfilePage() {
                                                         <button
                                                             onClick={() =>
                                                                 setEditingExperienceIdx(
-                                                                    null
+                                                                    null,
                                                                 )
                                                             }
                                                             className="px-4 py-2 bg-[#0090D9] text-white rounded-md hover:bg-[#007bb5] text-sm"
@@ -740,14 +735,14 @@ export default function ProfilePage() {
                                                                     ];
                                                                 updated.splice(
                                                                     idx,
-                                                                    1
+                                                                    1,
                                                                 );
                                                                 updateField(
                                                                     "experiences",
-                                                                    updated
+                                                                    updated,
                                                                 );
                                                                 setEditingExperienceIdx(
-                                                                    null
+                                                                    null,
                                                                 );
                                                             }}
                                                             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm"
@@ -782,7 +777,7 @@ export default function ProfilePage() {
                                                         <button
                                                             onClick={() =>
                                                                 removeExperience(
-                                                                    idx
+                                                                    idx,
                                                                 )
                                                             }
                                                             className="ml-4 px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs"
@@ -792,7 +787,7 @@ export default function ProfilePage() {
                                                         <button
                                                             onClick={() =>
                                                                 setEditingExperienceIdx(
-                                                                    idx
+                                                                    idx,
                                                                 )
                                                             }
                                                             className="ml-4 px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs"
@@ -803,7 +798,7 @@ export default function ProfilePage() {
                                                 </div>
                                             )}
                                         </div>
-                                    )
+                                    ),
                                 )}
                             </div>
                         ) : (
@@ -894,7 +889,7 @@ export default function ProfilePage() {
                                                         ×
                                                     </button>
                                                 </span>
-                                            )
+                                            ),
                                         )}
                                     </div>
                                 </div>
@@ -910,7 +905,7 @@ export default function ProfilePage() {
                                                 >
                                                     {skill}
                                                 </span>
-                                            )
+                                            ),
                                         )
                                     ) : (
                                         <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-md w-full">
@@ -934,7 +929,7 @@ export default function ProfilePage() {
                                             value={newCertification}
                                             onChange={(e) =>
                                                 setNewCertification(
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             onKeyPress={(e) =>
@@ -964,7 +959,7 @@ export default function ProfilePage() {
                                                     <button
                                                         onClick={() =>
                                                             removeCertification(
-                                                                cert
+                                                                cert,
                                                             )
                                                         }
                                                         className="text-red-500 text-sm hover:text-red-700 transition-colors"
@@ -972,7 +967,7 @@ export default function ProfilePage() {
                                                         X
                                                     </button>
                                                 </div>
-                                            )
+                                            ),
                                         )}
                                     </div>
                                 </div>
@@ -990,7 +985,7 @@ export default function ProfilePage() {
                                                         {cert}
                                                     </span>
                                                 </div>
-                                            )
+                                            ),
                                         )
                                     ) : (
                                         <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-md">

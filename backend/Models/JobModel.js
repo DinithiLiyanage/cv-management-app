@@ -12,7 +12,7 @@ const JobSchema = new mongoose.Schema(
         },
         title: { type: String, required: true },
         company: { type: String },
-        location: { type: String},
+        location: { type: String },
         category: { type: String },
         salary_min: { type: Number },
         salary_max: { type: Number },
@@ -58,5 +58,41 @@ const JobSchema = new mongoose.Schema(
 
 JobSchema.index({ orgId: 1, status: 1 });
 JobSchema.index({ source: 1 });
+JobSchema.index({ deadline: 1, status: 1 }); // Index for deadline queries
+
+// Static method to check and update expired jobs
+JobSchema.statics.updateExpiredJobs = async function () {
+    const now = new Date();
+    const result = await this.updateMany(
+        {
+            status: "open",
+            deadline: { $lt: now },
+            source: "internal",
+        },
+        {
+            $set: { status: "closed" },
+        },
+    );
+    return result.modifiedCount;
+};
+
+// Pre-find hook to automatically close expired jobs when querying
+JobSchema.pre(/^find/, async function () {
+    // Only run for internal job queries
+    const query = this.getQuery();
+    if (query.source === "internal" || query._id) {
+        const now = new Date();
+        await this.model.updateMany(
+            {
+                status: "open",
+                deadline: { $lt: now },
+                source: "internal",
+            },
+            {
+                $set: { status: "closed" },
+            },
+        );
+    }
+});
 
 module.exports = mongoose.model("Job", JobSchema);

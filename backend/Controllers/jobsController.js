@@ -8,6 +8,7 @@ const appKey = process.env.ADZUNA_APP_KEY;
 const appId = process.env.ADZUNA_APP_ID;
 const Job = require("../Models/JobModel.js");
 const UserOrg = require("../Models/userOrgModel.js");
+const Org = require("../Models/orgModel.js");
 
 exports.searchJobs = async (req, res, next) => {
     try {
@@ -38,13 +39,13 @@ exports.searchJobs = async (req, res, next) => {
 
         const response = await axios.get(
             `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}`,
-            { params }
+            { params },
         );
 
         console.log("Adzuna API full response:", response.status);
         if (response.status == 200) {
             // console.log("Adzuna API response:", response.data.results);
-            const jobs = (response.data.results || []).map((job) => ({
+            const externalJobs = (response.data.results || []).map((job) => ({
                 id: job.id,
                 externalId: job.id,
                 title: job.title,
@@ -58,11 +59,68 @@ exports.searchJobs = async (req, res, next) => {
                 source: "external",
             }));
 
-            jobs.forEach((job) => {
+            // Build internal job search query
+            const internalQuery = {
+                source: "internal",
+                status: "open",
+            };
+
+            // Add text search if provided
+            if (what) {
+                internalQuery.$or = [
+                    { title: { $regex: what, $options: "i" } },
+                    { description: { $regex: what, $options: "i" } },
+                    { company: { $regex: what, $options: "i" } },
+                ];
+            }
+
+            if (category) internalQuery.category = category;
+
+            // Add salary filters
+            if (salary_min)
+                internalQuery.salary_min = { $gte: Number(salary_min) };
+            if (salary_max)
+                internalQuery.salary_max = { $lte: Number(salary_max) };
+
+            // Add job type filters
+            const jobTypes = [];
+            if (full_time == "1") jobTypes.push("full_time");
+            if (part_time == "1") jobTypes.push("part_time");
+            if (contract == "1") jobTypes.push("contract");
+            if (permanent == "1") jobTypes.push("permanent");
+
+            if (jobTypes.length > 0) {
+                internalQuery.jobType = { $in: jobTypes };
+            }
+
+            // Fetch internal jobs
+            const internalJobsRaw = await Job.find(internalQuery);
+            const internalJobs = internalJobsRaw.map((job) => ({
+                id: job._id,
+                title: job.title,
+                company: job.company,
+                location: job.location,
+                category: job.category,
+                salary_min: job.salary_min,
+                salary_max: job.salary_max,
+                description: job.description,
+                source: "internal",
+                requirements: job.requirements,
+                responsibilities: job.responsibilities,
+                benefits: job.benefits,
+                jobType: job.jobType,
+                deadline: job.deadline,
+            }));
+
+            // Merge and return both
+            const allJobs = [...externalJobs, ...internalJobs];
+
+            // Cache the jobs
+            allJobs.forEach((job) => {
                 cache.set(`job:${job.id}`, job);
             });
 
-            res.json(jobs);
+            res.json(allJobs);
         }
     } catch (error) {
         console.log("Error fetching jobs from Adzuna API:", error);
@@ -70,7 +128,7 @@ exports.searchJobs = async (req, res, next) => {
     }
 };
 
-exports.getAllJobs = async (req, res, next) => {
+exports.getAllExternalJobs = async (req, res, next) => {
     try {
         const country = "us";
         const page = 1;
@@ -91,7 +149,7 @@ exports.getAllJobs = async (req, res, next) => {
 
         const response = await axios.get(
             `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}`,
-            { params }
+            { params },
         );
 
         // Map Adzuna jobs to your own job model
@@ -143,7 +201,7 @@ exports.createJob = async (req, res, next) => {
     try {
         const userId = req.user_id;
         const orgId = req.body.orgId;
-        
+
         const membership = await UserOrg.findOne({
             userId,
             orgId,
@@ -184,12 +242,16 @@ exports.createJob = async (req, res, next) => {
 exports.getOpenInternalJobsByOrg = async (req, res, next) => {
     try {
         const orgId = req.params.orgId;
-        const jobs = await Job.find({ orgId, source: "internal" , status: "open" });
+        const jobs = await Job.find({
+            orgId,
+            source: "internal",
+            status: "open",
+        });
         res.json(jobs);
     } catch (error) {
         console.log("Error fetching internal jobs:", error);
         next(new createError("Failed to fetch internal jobs", 500));
-    }   
+    }
 };
 
 exports.getInternalJobById = async (req, res, next) => {
@@ -203,5 +265,37 @@ exports.getInternalJobById = async (req, res, next) => {
     } catch (error) {
         console.log("Error fetching internal job:", error);
         next(new createError("Failed to fetch internal job", 500));
+    }
+};
+
+exports.getAllInternalJobs = async (req, res, next) => {
+    try {
+        const jobs = await Job.find({
+            source: "internal",
+            status: "open",
+        }).populate("orgId", "name"); // Populate organization name if needed
+
+        // Transform to match external job format
+        const formattedJobs = jobs.map((job) => ({
+            id: job._id,
+            title: job.title,
+            company: job.company,
+            location: job.location,
+            category: job.category,
+            salary_min: job.salary_min,
+            salary_max: job.salary_max,
+            description: job.description,
+            source: "internal",
+            requirements: job.requirements,
+            responsibilities: job.responsibilities,
+            benefits: job.benefits,
+            jobType: job.jobType,
+            deadline: job.deadline,
+        }));
+
+        res.json(formattedJobs);
+    } catch (error) {
+        console.log("Error fetching all internal jobs:", error);
+        next(new createError("Failed to fetch internal jobs", 500));
     }
 };

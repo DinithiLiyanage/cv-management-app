@@ -3,9 +3,12 @@ import Header from "@/components/Header";
 import { useSearchParams } from "next/navigation";
 import BookmarkBorder from "@mui/icons-material/BookmarkBorder";
 import Bookmark from "@mui/icons-material/Bookmark";
+import EditIcon from "@mui/icons-material/Edit";
 import React, { useEffect } from "react";
 import { Button } from "@mui/material";
 import { InternalJob, Job } from "@/types/job";
+import { API_URL } from "@/lib/config";
+import Breadcrumb from "@/components/Breadcrumb";
 
 type JobDetailsType = Job | InternalJob;
 
@@ -19,6 +22,8 @@ export default function JobDetailsPage() {
         searchParams.get("isSaved") === "true",
     );
     const [token, setToken] = React.useState<string | null>(null);
+    const [hasApplied, setHasApplied] = React.useState(false);
+    const [checkingApplication, setCheckingApplication] = React.useState(false);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -44,7 +49,7 @@ export default function JobDetailsPage() {
             headers["authorization"] = `Bearer ${token}`;
         }
 
-        fetch(`http://localhost:3001/api/jobs/${source}/${id}`, { headers })
+        fetch(`${API_URL}/api/jobs/${source}/${id}`, { headers })
             .then((res) => res.json())
             .then((job) => {
                 console.log("Job fetched:", job);
@@ -54,6 +59,31 @@ export default function JobDetailsPage() {
             .catch(() => {
                 setJob(null);
                 setLoading(false);
+            });
+    }, [id, token, source]);
+
+    // Check if user has already applied for this internal job
+    useEffect(() => {
+        if (!id || !token || source !== "internal") return;
+
+        setCheckingApplication(true);
+        fetch(`${API_URL}/api/applications/job/${id}/user`, {
+            headers: {
+                authorization: `Bearer ${token}`,
+            },
+        })
+            .then((res) => {
+                if (res.ok) {
+                    setHasApplied(true);
+                } else {
+                    setHasApplied(false);
+                }
+            })
+            .catch(() => {
+                setHasApplied(false);
+            })
+            .finally(() => {
+                setCheckingApplication(false);
             });
     }, [id, token, source]);
 
@@ -83,6 +113,9 @@ export default function JobDetailsPage() {
     return (
         <div className="w-full min-h-screen">
             <Header />
+            <div className="max-w-5xl mx-auto mt-6">
+                <Breadcrumb />
+            </div>
             <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-8 mt-10 mb-20">
                 <div className="flex justify-between items-center mb-2">
                     <h1 className="text-3xl text-[#0090D9] font-bold mb-2">
@@ -100,7 +133,7 @@ export default function JobDetailsPage() {
                 </p>
                 <div className="mb-6">
                     <span className="font-semibold text-[#0090D9] text-lg">
-                        Category: {" "}
+                        Category:{" "}
                     </span>
                     <span className="mt-2 text-gray-800 text-base">
                         {job?.category || "No category provided."}
@@ -224,24 +257,41 @@ export default function JobDetailsPage() {
                 )}
 
                 <div className="flex justify-end mt-8">
-                    <Button
-                        className="px-10 flex justify-center bg-[#0090D9] hover:bg-[#0090D9] text-white"
-                        variant="contained"
-                    >
-                        {job && !isInternalJob(job) && job.url ? (
-                            <a
-                                href={job.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Apply Now
-                            </a>
-                        ) : isInternalJob(job as JobDetailsType) ? (
-                            "Apply Now"
-                        ) : (
-                            "Can't Apply Now"
-                        )}
-                    </Button>
+                    {job && !isInternalJob(job) && job.url ? (
+                        <Button
+                            className="px-10 flex justify-center bg-[#0090D9] hover:bg-[#0090D9] text-white"
+                            variant="contained"
+                            href={job.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Apply Now
+                        </Button>
+                    ) : isInternalJob(job as JobDetailsType) ? (
+                        <Button
+                            className={`px-10 flex justify-center ${hasApplied ? "bg-orange-500 hover:bg-orange-600" : "bg-[#0090D9] hover:bg-[#0090D9]"} text-white`}
+                            variant="contained"
+                            onClick={() => {
+                                window.location.href = `/jobs/apply?jobId=${id}&source=${source}&title=${encodeURIComponent(job?.title || "")}&company=${job?.company}`;
+                            }}
+                            startIcon={hasApplied ? <EditIcon /> : null}
+                            disabled={checkingApplication}
+                        >
+                            {checkingApplication
+                                ? "Loading..."
+                                : hasApplied
+                                  ? "Edit Application"
+                                  : "Apply Now"}
+                        </Button>
+                    ) : (
+                        <Button
+                            className="px-10 flex justify-center bg-gray-400 text-white"
+                            variant="contained"
+                            disabled
+                        >
+                            Can't Apply Now
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

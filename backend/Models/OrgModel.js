@@ -34,8 +34,11 @@ const organizationSchema = new mongoose.Schema({
 // add a text index across multiple fields
 organizationSchema.index(
     { name: "text", description: "text", industry: "text", location: "text" },
-    { default_language: "english" }
+    { default_language: "english" },
 );
 
-const Organization = mongoose.model("organization", organizationSchema);
+// Check if model exists before creating it
+const Organization =
+    mongoose.models.Organization ||
+    mongoose.model("Organization", organizationSchema);
 module.exports = Organization;

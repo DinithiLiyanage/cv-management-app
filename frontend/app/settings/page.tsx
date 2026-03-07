@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
+import { API_URL } from "../../lib/config";
 import {
     Person,
     Security,
@@ -87,18 +88,18 @@ export default function SettingsPage() {
     ];
 
     useEffect(() => {
-            if (typeof window !== "undefined") {
-                const storedData = localStorage.getItem("user_data");
-                if (storedData) {
-                    try {
-                        const parsed = JSON.parse(storedData);
-                        setToken(parsed.userToken);
-                    } catch (e) {
-                        // handle error
-                    }
+        if (typeof window !== "undefined") {
+            const storedData = localStorage.getItem("user_data");
+            if (storedData) {
+                try {
+                    const parsed = JSON.parse(storedData);
+                    setToken(parsed.userToken);
+                } catch (e) {
+                    // handle error
                 }
             }
-        }, []);
+        }
+    }, []);
 
     useEffect(() => {
         if (!token) return;
@@ -108,16 +109,13 @@ export default function SettingsPage() {
     const fetchUserAccount = async () => {
         setLoading(true);
         try {
-            const response = await fetch(
-                `http://localhost:3001/api/user/account`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await fetch(`${API_URL}/api/user/account`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             if (response.ok) {
                 const userData = await response.json();
@@ -172,20 +170,17 @@ export default function SettingsPage() {
 
         setLoading(true);
         try {
-            const response = await fetch(
-                `/api/users/account/change-password`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        currentPassword: passwordData.currentPassword,
-                        newPassword: passwordData.newPassword,
-                    }),
-                }
-            );
+            const response = await fetch(`/api/users/account/change-password`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    currentPassword: passwordData.currentPassword,
+                    newPassword: passwordData.newPassword,
+                }),
+            });
 
             if (response.ok) {
                 console.log("Password changed successfully");
@@ -283,7 +278,7 @@ export default function SettingsPage() {
                                     if (
                                         newEmail &&
                                         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                                            newEmail
+                                            newEmail,
                                         ) &&
                                         !(
                                             (user?.secondaryEmails ??
@@ -296,14 +291,14 @@ export default function SettingsPage() {
                                                       ...prev,
                                                       secondaryEmails: [
                                                           ...(Array.isArray(
-                                                              prev.secondaryEmails
+                                                              prev.secondaryEmails,
                                                           )
                                                               ? prev.secondaryEmails
                                                               : []),
                                                           newEmail,
                                                       ],
                                                   }
-                                                : null
+                                                : null,
                                         );
                                         setNewSecondaryEmail("");
                                     }
@@ -335,17 +330,17 @@ export default function SettingsPage() {
                                                           ...prev,
                                                           secondaryEmails:
                                                               (Array.isArray(
-                                                                  prev.secondaryEmails
+                                                                  prev.secondaryEmails,
                                                               )
                                                                   ? prev.secondaryEmails
                                                                   : []
                                                               ).filter(
                                                                   (e: string) =>
                                                                       e !==
-                                                                      email
+                                                                      email,
                                                               ),
                                                       }
-                                                    : null
+                                                    : null,
                                             );
                                         }}
                                     >
@@ -545,7 +540,7 @@ export default function SettingsPage() {
                                 onChange={(e) =>
                                     updateField(
                                         "emailNotifications",
-                                        e.target.checked
+                                        e.target.checked,
                                     )
                                 }
                                 className="sr-only peer"
@@ -573,7 +568,7 @@ export default function SettingsPage() {
                                 onChange={(e) =>
                                     updateField(
                                         "pushNotifications",
-                                        e.target.checked
+                                        e.target.checked,
                                     )
                                 }
                                 className="sr-only peer"
@@ -601,7 +596,7 @@ export default function SettingsPage() {
                                 onChange={(e) =>
                                     updateField(
                                         "notifications",
-                                        e.target.checked
+                                        e.target.checked,
                                     )
                                 }
                                 className="sr-only peer"
@@ -636,7 +631,7 @@ export default function SettingsPage() {
                                     }
                                     className={`p-3 text-sm text-center rounded-lg border-2 transition-colors ${
                                         (user?.jobType || []).includes(
-                                            option.id
+                                            option.id,
                                         )
                                             ? "border-[#0090D9] bg-blue-50 text-[#0090D9]"
                                             : "border-gray-200 hover:border-[#0090D9] text-gray-700"
@@ -693,12 +688,12 @@ export default function SettingsPage() {
                                     onClick={() =>
                                         toggleArrayItem(
                                             "jobLocation",
-                                            option.id
+                                            option.id,
                                         )
                                     }
                                     className={`p-3 text-sm text-center rounded-lg border-2 transition-colors ${
                                         (user?.jobLocation || []).includes(
-                                            option.id
+                                            option.id,
                                         )
                                             ? "border-[#0090D9] bg-blue-50 text-[#0090D9]"
                                             : "border-gray-200 hover:border-[#0090D9] text-gray-700"
@@ -1039,7 +1034,7 @@ export default function SettingsPage() {
                                         key={item.id}
                                         onClick={() =>
                                             setActiveSection(
-                                                item.id as SettingsSection
+                                                item.id as SettingsSection,
                                             )
                                         }
                                         className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
