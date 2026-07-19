@@ -22,7 +22,7 @@ type ProffessionalInfo = {
 };
 
 export default function OnboardingPage() {
-    const { userData } = useAuth();
+    const { token } = useAuth();
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -54,16 +54,19 @@ export default function OnboardingPage() {
     const handleFinish = async () => {
         try {
             // Send complete profile data to backend
-            const response = await fetch(
-                `${API_URL}/api/user/profile/${userData.id}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
+            if (!token) {
+                console.error("No auth token found");
+                return;
+            }
+
+            const response = await fetch(`${API_URL}/api/user/profile`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
-            );
+                body: JSON.stringify(formData),
+            });
 
             if (response.ok) {
                 router.push("/home"); // Redirect to main app
@@ -100,7 +103,25 @@ export default function OnboardingPage() {
                                 industry: "",
                             }
                         }
-                        updateData={updateFormData}
+                        updateData={(newData: Partial<ProffessionalInfo>) => {
+                            const currentExperience = formData
+                                .experiences[0] || {
+                                jobTitle: "",
+                                company: "",
+                                startDate: "",
+                                endDate: "",
+                                industry: "",
+                            };
+
+                            updateFormData({
+                                experiences: [
+                                    {
+                                        ...currentExperience,
+                                        ...newData,
+                                    },
+                                ],
+                            });
+                        }}
                     />
                 );
             case 3:

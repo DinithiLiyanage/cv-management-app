@@ -10,6 +10,12 @@ import { API_URL } from "@/lib/config";
 
 export default function OrganizationDetailPage() {
     const params = useParams();
+    const orgId =
+        typeof params.id === "string"
+            ? params.id
+            : Array.isArray(params.id)
+              ? params.id[0]
+              : undefined;
     const [token, setToken] = React.useState<string | null>(null);
     const [org, setOrg] = useState<any>(null);
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -35,15 +41,15 @@ export default function OrganizationDetailPage() {
     }, []);
 
     useEffect(() => {
-        if (token) {
+        if (token && orgId && orgId !== "undefined" && orgId !== "null") {
             fetchOrganizationDetails();
         }
-    }, [params.id, token]);
+    }, [orgId, token]);
 
     const fetchOrganizationDetails = async () => {
         try {
             const response = await fetch(
-                `${API_URL}/api/organizations/${params.id}`,
+                `${API_URL}/api/organizations/${orgId}`,
                 {
                     method: "GET",
                     headers: {
@@ -61,7 +67,7 @@ export default function OrganizationDetailPage() {
             setIsAdmin(data.role === "admin");
 
             const responseJobs = await fetch(
-                `${API_URL}/api/jobs/${params.id}`,
+                `${API_URL}/api/jobs/org/${orgId}`,
                 {
                     method: "GET",
                     headers: {
@@ -93,7 +99,7 @@ export default function OrganizationDetailPage() {
             }
 
             const vacancyData = {
-                orgId: params.id,
+                orgId,
                 company: org.name,
                 title: newVacancy.title,
                 location: newVacancy.location,

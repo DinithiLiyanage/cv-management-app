@@ -20,8 +20,8 @@ exports.signup = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    const token = jwt.sign({ _id: newUser._id }, "secretkey123", {
-      expiresIn: "90d",
+    const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "10d",
     });
 
     res.status(201).json({

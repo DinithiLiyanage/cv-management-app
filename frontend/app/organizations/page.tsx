@@ -181,9 +181,24 @@ export default function OrganizationsPage() {
                     body: JSON.stringify(organization),
                 },
             );
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                console.error("Organization creation failed:", errorData);
+                alert("Failed to create organization. Please try again.");
+                return;
+            }
             const data = await response.json();
             console.log("Organization created:", data);
-            const orgId = data._id;
+            const orgId = data._id || data.id;
+
+            if (!orgId) {
+                console.error(
+                    "Organization creation response missing id:",
+                    data,
+                );
+                alert("Organization was created, but its id was not returned.");
+                return;
+            }
 
             const membership = await fetch(
                 `${API_URL}/api/user/organizations/join`,
@@ -202,7 +217,13 @@ export default function OrganizationsPage() {
             const membershipData = await membership.json();
             console.log("Membership created:", membershipData);
 
-            setMyOrganizations((prev) => [organization, ...prev]);
+            setMyOrganizations((prev) => [
+                {
+                    ...organization,
+                    id: orgId,
+                },
+                ...prev,
+            ]);
             setShowCreateModal(false);
             setNewOrg({
                 name: "",

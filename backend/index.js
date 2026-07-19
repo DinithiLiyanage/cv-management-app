@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+require("dotenv").config();
 const {
     scheduleJobStatusUpdates,
     checkExpiredJobsNow,
@@ -9,6 +10,24 @@ const {
 const PORT = process.env.PORT || 3001;
 
 const app = express();
+
+const cleanupOrganizationIndexes = async () => {
+    try {
+        const indexes = await mongoose.connection.db
+            .collection("organizations")
+            .indexes();
+        const legacyIndex = indexes.find((index) => index.name === "id_1");
+
+        if (legacyIndex) {
+            await mongoose.connection.db
+                .collection("organizations")
+                .dropIndex("id_1");
+            console.log("Dropped legacy organizations.id index");
+        }
+    } catch (error) {
+        console.warn("Skipping organization index cleanup:", error.message);
+    }
+};
 
 // Middlewares
 app.use(cors());
@@ -21,11 +40,15 @@ app.use("/api/user", require("./Routers/userRoute"));
 app.use("/api/organizations", require("./Routers/orgRoute"));
 app.use("/api/applications", require("./Routers/applicationRoute"));
 
+const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/JobApp";
+
 // Mongo DB connection
 mongoose
-    .connect("mongodb://127.0.0.1:27017/JobApp")
+    .connect(mongoUri)
     .then(() => {
         console.log("Connected to MongoDB!");
+
+        cleanupOrganizationIndexes();
 
         // Check for expired jobs immediately on startup
         checkExpiredJobsNow();
