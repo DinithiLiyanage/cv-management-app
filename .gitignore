@@ -73,7 +73,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Vuepress build output
 .vuepress/dist
@@ -151,6 +150,9 @@ data/
 # Upload directories
 uploads/
 public/uploads/
+
+# Frontend public PDF worker asset
+frontend/public/pdf.worker.min.mjs
 
 # Compiled CSS from preprocessors
 *.css.map
